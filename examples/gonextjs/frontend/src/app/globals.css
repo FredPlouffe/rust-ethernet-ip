@@ -1,3 +1,345 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+/* Professional Industrial HMI/SCADA Styling */
+:root {
+  /* Industrial Color Palette - Clean & Minimalistic */
+  --hmi-bg-primary: #ffffff;         /* Pure white background */
+  --hmi-bg-secondary: #f8f9fa;       /* Light gray background */
+  --hmi-bg-panel: #ffffff;           /* White panel background */
+  --hmi-bg-card: #f8f9fa;            /* Light gray card background */
+  --hmi-text-primary: #2c3e50;       /* Dark blue-gray text */
+  --hmi-text-secondary: #5a6c7d;     /* Medium gray text */
+  --hmi-text-muted: #95a5a6;         /* Light gray text */
+  --hmi-border: #bdc3c7;             /* Light border */
+  --hmi-border-light: #ecf0f1;       /* Very light border */
+  
+  /* Status Colors */
+  --hmi-success: #00ff00;            /* Green - OK/Running */
+  --hmi-warning: #ffaa00;            /* Orange - Warning */
+  --hmi-error: #ff0000;              /* Red - Error/Stop */
+  --hmi-info: #00aaff;               /* Blue - Info */
+  --hmi-neutral: #888888;            /* Gray - Neutral */
+  
+  /* Process Colors */
+  --hmi-process-running: #00ff00;    /* Green - Running */
+  --hmi-process-stopped: #ff0000;    /* Red - Stopped */
+  --hmi-process-maintenance: #ffaa00; /* Orange - Maintenance */
+  --hmi-process-alarm: #ff0000;      /* Red - Alarm */
+  
+  /* Data Colors */
+  --hmi-data-normal: #00aaff;        /* Blue - Normal values */
+  --hmi-data-high: #ffaa00;          /* Orange - High values */
+  --hmi-data-critical: #ff0000;      /* Red - Critical values */
+  --hmi-data-low: #00ff00;           /* Green - Low values */
+}
+
+/* Base styling */
+body {
+  background: var(--hmi-bg-primary);
+  color: var(--hmi-text-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Professional HMI Components */
+.hmi-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.hmi-panel {
+  background: var(--hmi-bg-panel);
+  border: 1px solid var(--hmi-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.hmi-card {
+  background: var(--hmi-bg-card);
+  border: 1px solid var(--hmi-border-light);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.hmi-button {
+  background: var(--hmi-bg-secondary);
+  border: 1px solid var(--hmi-border);
+  color: var(--hmi-text-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.hmi-button:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hmi-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-running {
+  background: rgba(0, 255, 0, 0.1);
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+
+.status-stopped {
+  background: rgba(255, 0, 0, 0.1);
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.status-warning {
+  background: rgba(255, 170, 0, 0.1);
+  color: #fd7e14;
+  border: 1px solid #fd7e14;
+}
+
+.status-maintenance {
+  background: rgba(255, 170, 0, 0.1);
+  color: #fd7e14;
+  border: 1px solid #fd7e14;
+}
+
+/* Data Display */
+.data-value {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.data-normal {
+  color: #007bff;
+}
+
+.data-high {
+  color: #fd7e14;
+}
+
+.data-critical {
+  color: #dc3545;
+}
+
+.data-low {
+  color: #28a745;
+}
+
+/* Progress Bars */
+.hmi-progress {
+  background: var(--hmi-bg-secondary);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid var(--hmi-border);
+}
+
+.hmi-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+.progress-normal {
+  background: linear-gradient(90deg, #007bff, #0056b3);
+}
+
+.progress-warning {
+  background: linear-gradient(90deg, #fd7e14, #e55a00);
+}
+
+.progress-critical {
+  background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+/* Tables */
+.hmi-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--hmi-bg-card);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hmi-table th {
+  background: #f8f9fa;
+  color: var(--hmi-text-primary);
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--hmi-border);
+}
+
+.hmi-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hmi-border-light);
+  color: var(--hmi-text-secondary);
+}
+
+.hmi-table tr:hover {
+  background: #f8f9fa;
+}
+
+/* Input Fields */
+.hmi-input {
+  background: var(--hmi-bg-card);
+  border: 1px solid var(--hmi-border);
+  color: var(--hmi-text-primary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.hmi-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.hmi-select {
+  background: var(--hmi-bg-card);
+  border: 1px solid var(--hmi-border);
+  color: var(--hmi-text-primary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Tabs */
+.hmi-tabs {
+  display: flex;
+  background: var(--hmi-bg-secondary);
+  border-radius: 6px;
+  padding: 4px;
+  border: 1px solid var(--hmi-border);
+}
+
+.hmi-tab {
+  flex: 1;
+  padding: 12px 16px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: var(--hmi-text-secondary);
+}
+
+.hmi-tab.active {
+  background: var(--hmi-bg-panel);
+  color: var(--hmi-text-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hmi-tab:hover:not(.active) {
+  background: #f8f9fa;
+  color: var(--hmi-text-primary);
+}
+
+/* Grid Layouts */
+.hmi-grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.hmi-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.hmi-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 1920px) {
+  .hmi-container {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 1600px) {
+  .hmi-grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .hmi-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hmi-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hmi-grid-4,
+  .hmi-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation for status changes */
+@keyframes pulse-success {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-error {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse-success {
+  animation: pulse-success 2s infinite;
+}
+
+.pulse-error {
+  animation: pulse-error 1s infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+} 

@@ -1,4 +1,4 @@
-export type PlcStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
+export type PlcStatus = 'connected' | 'disconnected' | 'connecting' | 'error' | 'unknown';
 
 export interface PlcTagValue {
   tag: string;

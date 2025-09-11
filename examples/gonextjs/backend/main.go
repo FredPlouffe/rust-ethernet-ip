@@ -319,16 +319,26 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		mu.Unlock()
 
 		// Example: Read a tag and send update (Bool type for demo)
-		val, err := client.ReadValue("_IO_EM_DI00", gowrapper.Bool)
-		if err != nil {
-			log.Println(err)
-			continue
+		// Only try to read if client is connected
+		if client != nil {
+			val, err := client.ReadValue("_IO_EM_DI00", gowrapper.Bool)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			conn.WriteJSON(map[string]interface{}{
+				"tag":   "_IO_EM_DI00",
+				"value": val.Value,
+				"type":  "Bool",
+			})
+		} else {
+			// Send a message indicating no PLC connection
+			conn.WriteJSON(map[string]interface{}{
+				"tag":   "status",
+				"value": "No PLC connected",
+				"type":  "String",
+			})
 		}
-		conn.WriteJSON(map[string]interface{}{
-			"tag":   "_IO_EM_DI00",
-			"value": val.Value,
-			"type":  "Bool",
-		})
 	}
 }
 

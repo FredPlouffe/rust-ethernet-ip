@@ -1,13 +1,13 @@
-use lazy_static::lazy_static;
 use rust_ethernet_ip::{PlcConfig, PlcManager, PlcValue, TagMetadata, TagPermissions, TagScope};
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::Mutex;
 use std::time::Duration;
 
-// Mock PLC state for testing
-lazy_static! {
-    static ref MOCK_PLC_STATE: Mutex<HashMap<String, PlcValue>> = Mutex::new(HashMap::new());
+// Mock PLC state for testing - using thread-local storage for test isolation
+use std::cell::RefCell;
+
+thread_local! {
+    static MOCK_PLC_STATE: RefCell<HashMap<String, PlcValue>> = RefCell::new(HashMap::new());
 }
 
 // Mock EipClient for testing
@@ -15,6 +15,10 @@ struct MockEipClient;
 
 impl MockEipClient {
     fn new() -> Self {
+        // Clear any existing state for this test
+        MOCK_PLC_STATE.with(|state| {
+            state.borrow_mut().clear();
+        });
         Self
     }
 
@@ -31,17 +35,20 @@ impl MockEipClient {
                 return Err("String contains null byte".into());
             }
         }
-        let mut state = MOCK_PLC_STATE.lock().unwrap();
-        state.insert(tag_name.to_string(), value);
+        MOCK_PLC_STATE.with(|state| {
+            state.borrow_mut().insert(tag_name.to_string(), value);
+        });
         Ok(())
     }
 
     async fn read_tag(&mut self, tag_name: &str) -> Result<PlcValue, Box<dyn Error>> {
-        let state = MOCK_PLC_STATE.lock().unwrap();
-        state
-            .get(tag_name)
-            .cloned()
-            .ok_or_else(|| "Tag not found".into())
+        MOCK_PLC_STATE.with(|state| {
+            state
+                .borrow()
+                .get(tag_name)
+                .cloned()
+                .ok_or_else(|| "Tag not found".into())
+        })
     }
 
     async fn discover_tags(&mut self) -> Result<(), Box<dyn Error>> {

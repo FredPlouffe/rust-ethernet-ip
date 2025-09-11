@@ -1085,18 +1085,157 @@ impl EipClient {
         self.max_packet_size = size.min(4000);
     }
 
-    /// Discovers all tags in the PLC
+    /// Discovers all tags in the PLC (including hierarchical UDT members)
     pub async fn discover_tags(&mut self) -> crate::error::Result<()> {
         let response = self
             .send_cip_request(&self.build_list_tags_request())
             .await?;
-        let tags = self.tag_manager.lock().await.parse_tag_list(&response)?;
-        let tag_manager = self.tag_manager.lock().await;
-        let mut cache = tag_manager.cache.write().unwrap();
-        for (name, metadata) in tags {
-            cache.insert(name, metadata);
+        let tags = {
+            let tag_manager = self.tag_manager.lock().await;
+            tag_manager.parse_tag_list(&response)?
+        };
+
+        println!("[DEBUG] Initial tag discovery found {} tags", tags.len());
+
+        // Perform recursive drill-down discovery (similar to TypeScript implementation)
+        let hierarchical_tags = {
+            let tag_manager = self.tag_manager.lock().await;
+            tag_manager.drill_down_tags(&tags).await?
+        };
+
+        println!(
+            "[DEBUG] After drill-down: {} total tags discovered",
+            hierarchical_tags.len()
+        );
+
+        {
+            let tag_manager = self.tag_manager.lock().await;
+            let mut cache = tag_manager.cache.write().unwrap();
+            for (name, metadata) in hierarchical_tags {
+                cache.insert(name, metadata);
+            }
         }
         Ok(())
+    }
+
+    /// Discovers UDT members for a specific structure
+    pub async fn discover_udt_members(
+        &mut self,
+        udt_name: &str,
+    ) -> crate::error::Result<Vec<(String, TagMetadata)>> {
+        // Build CIP request to get UDT definition
+        let cip_request = {
+            let tag_manager = self.tag_manager.lock().await;
+            tag_manager.build_udt_definition_request(udt_name)?
+        };
+
+        // Send the request
+        let response = self.send_cip_request(&cip_request).await?;
+
+        // Parse the UDT definition from response
+        let definition = {
+            let tag_manager = self.tag_manager.lock().await;
+            tag_manager.parse_udt_definition_response(&response, udt_name)?
+        };
+
+        // Cache the definition
+        {
+            let tag_manager = self.tag_manager.lock().await;
+            let mut definitions = tag_manager.udt_definitions.write().unwrap();
+            definitions.insert(udt_name.to_string(), definition.clone());
+        }
+
+        // Create member metadata
+        let mut members = Vec::new();
+        for member in &definition.members {
+            let member_name = member.name.clone();
+            let full_name = format!("{}.{}", udt_name, member_name);
+
+            let metadata = TagMetadata {
+                data_type: member.data_type,
+                scope: TagScope::Controller,
+                permissions: TagPermissions {
+                    readable: true,
+                    writable: true,
+                },
+                is_array: false,
+                dimensions: Vec::new(),
+                last_access: std::time::Instant::now(),
+                size: member.size,
+                array_info: None,
+                last_updated: std::time::Instant::now(),
+            };
+
+            members.push((full_name, metadata));
+        }
+
+        Ok(members)
+    }
+
+    /// Gets cached UDT definition
+    pub async fn get_udt_definition(&self, udt_name: &str) -> Option<UdtDefinition> {
+        let tag_manager = self.tag_manager.lock().await;
+        tag_manager.get_udt_definition_cached(udt_name)
+    }
+
+    /// Lists all cached UDT definitions
+    pub async fn list_udt_definitions(&self) -> Vec<String> {
+        let tag_manager = self.tag_manager.lock().await;
+        tag_manager.list_udt_definitions()
+    }
+
+    /// Discovers hierarchical tags by drilling down into structures and UDTs
+    async fn discover_hierarchical_tags(
+        &mut self,
+        base_tags: &[(String, TagMetadata)],
+    ) -> crate::error::Result<Vec<(String, TagMetadata)>> {
+        let mut all_tags = Vec::new();
+        let mut tag_names = std::collections::HashSet::new();
+
+        // Add base tags first
+        for (name, metadata) in base_tags {
+            all_tags.push((name.clone(), metadata.clone()));
+            tag_names.insert(name.clone());
+        }
+
+        // Process each tag for hierarchical discovery
+        for (name, metadata) in base_tags {
+            if metadata.is_structure() && !metadata.is_array {
+                // This is a structure/UDT, try to discover its members
+                if let Ok(members) = self.discover_udt_members(name).await {
+                    for (member_name, member_metadata) in members {
+                        let full_name = format!("{}.{}", name, member_name);
+                        if !tag_names.contains(&full_name) {
+                            all_tags.push((full_name.clone(), member_metadata.clone()));
+                            tag_names.insert(full_name.clone());
+
+                            // Recursively discover nested structures
+                            if member_metadata.is_structure() && !member_metadata.is_array {
+                                if let Ok(nested_members) =
+                                    self.discover_udt_members(&full_name).await
+                                {
+                                    for (nested_name, nested_metadata) in nested_members {
+                                        let nested_full_name =
+                                            format!("{}.{}", full_name, nested_name);
+                                        if !tag_names.contains(&nested_full_name) {
+                                            all_tags
+                                                .push((nested_full_name.clone(), nested_metadata));
+                                            tag_names.insert(nested_full_name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        println!(
+            "[DEBUG] Discovered {} total tags (including hierarchical)",
+            all_tags.len()
+        );
+        Ok(all_tags)
     }
 
     /// Gets metadata for a tag
@@ -1487,12 +1626,9 @@ impl EipClient {
             // Class segment: Symbol Object Class (0x6B)
             0x20, // Class segment identifier
             0x6B, // Symbol Object Class
-            
             // Instance segment: Start at Instance 0
             0x25, // Instance segment identifier with 0x00
-            0x00,
-            0x00,
-            0x00,
+            0x00, 0x00, 0x00,
         ];
 
         // Request data: 2 Attributes - Attribute 1 and Attribute 2

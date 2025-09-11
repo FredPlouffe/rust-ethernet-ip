@@ -1,5 +1,4 @@
 use rust_ethernet_ip::{EipClient, PlcValue};
-use std::time::Duration;
 
 #[tokio::main]
 async fn main() {

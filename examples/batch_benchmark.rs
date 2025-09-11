@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match client.read_tag(tag).await {
             Ok(value) => {
                 let duration = tag_start.elapsed();
-                individual_results.push((tag.clone(), Ok(value), duration));
+                individual_results.push((tag.to_string(), Ok(value), duration));
                 println!(
                     "  📊 {}: {:?} ({:.2}ms)",
                     tag,
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => {
                 let duration = tag_start.elapsed();
-                individual_results.push((tag.clone(), Err(e.to_string()), duration));
+                individual_results.push((tag.to_string(), Err(e.to_string()), duration));
                 println!(
                     "  ❌ {}: Error ({:.2}ms)",
                     tag,

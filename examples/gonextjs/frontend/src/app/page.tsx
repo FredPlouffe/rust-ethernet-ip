@@ -482,6 +482,7 @@ export default function Page() {
       setIsBatchReading(false);
     }
   };
+
   const handleBatchWrite = async () => {
     setIsBatchWriting(true);
     // Parse lines as TagName:Type=Value
@@ -522,255 +523,319 @@ export default function Page() {
 
   // UI rendering
   return (
-    <div className="space-y-6">
+    <div className="hmi-container">
       {/* Header and Status */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {isMonitoring && (
-            <span className="font-semibold text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-700 animate-pulse">
-              📊 Monitoring {monitoredTags.length} tags
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`font-semibold text-sm px-3 py-1 rounded-full ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{isConnected ? 'Connected' : 'Disconnected'}</span>
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+              <span className="text-2xl">🦀</span>
+              Rust EtherNet/IP Driver - Industrial HMI
+            </h1>
+            {isMonitoring && (
+              <div className="status-indicator status-running pulse-success">
+                📊 Monitoring {monitoredTags.length} tags
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <div className={`status-indicator ${isConnected ? 'status-running' : 'status-stopped'}`}>
+              {isConnected ? '🟢 CONNECTED' : '🔴 DISCONNECTED'}
+            </div>
+          </div>
         </div>
       </div>
       {/* Connect Controls */}
-      <div className="bg-white bg-opacity-80 rounded-xl shadow p-4 flex items-center gap-2">
-        <input
-          className="border rounded-lg px-3 py-2 flex-1 focus:ring-2 focus:ring-purple-400 outline-none"
-          value={plcAddress}
-          onChange={(e) => setPlcAddress(e.target.value)}
-          disabled={isConnected || isConnecting}
-        />
-        <button
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
-          onClick={handleConnect}
-          disabled={isConnected || isConnecting}
-        >
-          Connect
-        </button>
-        <button
-          className="bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
-          onClick={handleDisconnect}
-          disabled={!isConnected}
-        >
-          Disconnect
-        </button>
+      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-600 mb-2">PLC Address</label>
+            <input
+              className="hmi-input w-full"
+              value={plcAddress}
+              onChange={(e) => setPlcAddress(e.target.value)}
+              disabled={isConnected || isConnecting}
+              placeholder="192.168.1.100:44818"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              className="hmi-button bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
+              onClick={handleConnect}
+              disabled={isConnected || isConnecting}
+            >
+              {isConnecting ? '🔄 Connecting...' : '🟢 Connect'}
+            </button>
+            <button
+              className="hmi-button bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
+              onClick={handleDisconnect}
+              disabled={!isConnected}
+            >
+              🔴 Disconnect
+            </button>
+          </div>
+        </div>
       </div>
+
       {/* Tab Bar */}
-      <div className="rounded-xl p-1 bg-gradient-to-r from-purple-500 via-pink-400 to-blue-400 flex gap-2 shadow mb-2">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition text-sm ${activeTab === tab ? 'bg-white bg-opacity-90 text-purple-700 shadow' : 'text-white hover:bg-white hover:bg-opacity-20'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'Individual' && <span role="img" aria-label="individual">📊</span>}
-            {tab === 'Batch' && <span role="img" aria-label="batch">⚡</span>}
-            {tab === 'Performance' && <span role="img" aria-label="performance">📈</span>}
-            {tab === 'Config' && <span role="img" aria-label="config">⚙️</span>}
-            {tab === 'About' && <span role="img" aria-label="about">ℹ️</span>}
-            <span className="ml-1">{tab === 'About' ? 'About' : `${tab} Operations`}</span>
-          </button>
-        ))}
+      <div className="bg-white border-b border-gray-200">
+        <div className="hmi-tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              className={`hmi-tab ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'Individual' && <span role="img" aria-label="individual">📊</span>}
+              {tab === 'Batch' && <span role="img" aria-label="batch">⚡</span>}
+              {tab === 'Performance' && <span role="img" aria-label="performance">📈</span>}
+              {tab === 'HMI Demo' && <span role="img" aria-label="hmi">🏭</span>}
+              {tab === 'Config' && <span role="img" aria-label="config">⚙️</span>}
+              {tab === 'About' && <span role="img" aria-label="about">ℹ️</span>}
+              <span className="ml-2">{tab === 'About' ? 'About' : tab === 'HMI Demo' ? 'HMI Demo' : `${tab} Operations`}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      {/* Main Content Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Main Content Area */}
+      <div className="flex h-screen">
         {/* Left: Tag Operations */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white bg-opacity-90 rounded-2xl shadow p-6">
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="hmi-panel p-6">
             {activeTab === "Individual" && (
               <div>
-                <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><span role="img" aria-label="individual">📊</span> Individual Tag Operations</h2>
-                <div className="flex flex-col gap-2 mb-4">
-                  <div className="flex flex-col sm:flex-row gap-2 items-center mb-2">
-                    <input
-                      type="text"
-                      value={tagName}
-                      onChange={(e) => setTagName(e.target.value)}
-                      placeholder="Enter tag name"
-                      className="flex-1 px-3 py-2 bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <select
-                      value={tagType}
-                      onChange={(e) => setTagType(e.target.value)}
-                      className="px-3 py-2 bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="Bool">Bool</option>
-                      <option value="Sint">Sint</option>
-                      <option value="Int">Int</option>
-                      <option value="Dint">Dint</option>
-                      <option value="Lint">Lint</option>
-                      <option value="Usint">Usint</option>
-                      <option value="Uint">Uint</option>
-                      <option value="Udint">Udint</option>
-                      <option value="Ulint">Ulint</option>
-                      <option value="Real">Real</option>
-                      <option value="Lreal">Lreal</option>
-                      <option value="String">String</option>
-                      <option value="Udt">Udt</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={tagValue}
-                      onChange={(e) => setTagValue(e.target.value)}
-                      placeholder="Value"
-                      className="flex-1 px-3 py-2 bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-gray-800">
+                  <span role="img" aria-label="individual">📊</span> 
+                  Individual Tag Operations
+                </h2>
+                
+                {/* Tag Input Section */}
+                <div className="hmi-card p-6 mb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Tag Name</label>
+                      <input
+                        type="text"
+                        value={tagName}
+                        onChange={(e) => setTagName(e.target.value)}
+                        placeholder="Enter tag name"
+                        className="hmi-input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
+                      <select
+                        value={tagType}
+                        onChange={(e) => setTagType(e.target.value)}
+                        className="hmi-select w-full"
+                      >
+                        <option value="Bool">Bool</option>
+                        <option value="Sint">Sint</option>
+                        <option value="Int">Int</option>
+                        <option value="Dint">Dint</option>
+                        <option value="Lint">Lint</option>
+                        <option value="Usint">Usint</option>
+                        <option value="Uint">Uint</option>
+                        <option value="Udint">Udint</option>
+                        <option value="Ulint">Ulint</option>
+                        <option value="Real">Real</option>
+                        <option value="Lreal">Lreal</option>
+                        <option value="String">String</option>
+                        <option value="Udt">Udt</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Value</label>
+                      <input
+                        type="text"
+                        value={tagValue}
+                        onChange={(e) => setTagValue(e.target.value)}
+                        placeholder="Value to write"
+                        className="hmi-input w-full"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-row gap-2 justify-end mb-4">
+                  
+                  <div className="flex gap-3 justify-end">
                     <button
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
+                      className="hmi-button bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
                       onClick={handleReadTag}
                       disabled={!isConnected || isReading}
                     >
-                      {isReading ? "Reading..." : "Read"}
+                      {isReading ? "🔄 Reading..." : "📖 Read Tag"}
                     </button>
                     <button
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
+                      className="hmi-button bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
                       onClick={handleWriteTag}
                       disabled={!isConnected || isWriting}
                     >
-                      {isWriting ? "Writing..." : "Write"}
+                      {isWriting ? "🔄 Writing..." : "✏️ Write Tag"}
                     </button>
                   </div>
                 </div>
-                <div className="mb-2 text-sm">Last Read Value: <span className="font-mono text-base">{readValue !== null ? String(readValue) : "-"}</span></div>
+
+                {/* Last Read Value Display */}
+                <div className="hmi-card p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Last Read Value:</span>
+                    <span className="data-value data-normal">
+                      {readValue !== null ? String(readValue) : "—"}
+                    </span>
+                  </div>
+                </div>
                 
                 {/* Tag Monitoring Section */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <span role="img" aria-label="monitor">📊</span> Tag Monitoring
+                <div className="mt-8 pt-6 border-t border-gray-600">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                    <span role="img" aria-label="monitor">📊</span> 
+                    Tag Monitoring
                   </h3>
                   
                   {/* Add Tag to Monitor */}
-                  <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                    <input
-                      type="text"
-                      value={newMonitorTag}
-                      onChange={(e) => setNewMonitorTag(e.target.value)}
-                      placeholder="Tag name to monitor"
-                      className="flex-1 px-3 py-2 bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <select
-                      value={newMonitorType}
-                      onChange={(e) => setNewMonitorType(e.target.value)}
-                      className="px-3 py-2 bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="Bool">Bool</option>
-                      <option value="Sint">Sint</option>
-                      <option value="Int">Int</option>
-                      <option value="Dint">Dint</option>
-                      <option value="Lint">Lint</option>
-                      <option value="Usint">Usint</option>
-                      <option value="Uint">Uint</option>
-                      <option value="Udint">Udint</option>
-                      <option value="Ulint">Ulint</option>
-                      <option value="Real">Real</option>
-                      <option value="Lreal">Lreal</option>
-                      <option value="String">String</option>
-                      <option value="Udt">Udt</option>
-                    </select>
-                    <button
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
-                      onClick={addTagToMonitor}
-                      disabled={!isConnected || !newMonitorTag.trim()}
-                    >
-                      Add to Monitor
-                    </button>
+                  <div className="hmi-card p-6 mb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-2">Tag Name to Monitor</label>
+                        <input
+                          type="text"
+                          value={newMonitorTag}
+                          onChange={(e) => setNewMonitorTag(e.target.value)}
+                          placeholder="Enter tag name"
+                          className="hmi-input w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
+                        <select
+                          value={newMonitorType}
+                          onChange={(e) => setNewMonitorType(e.target.value)}
+                          className="hmi-select w-full"
+                        >
+                          <option value="Bool">Bool</option>
+                          <option value="Sint">Sint</option>
+                          <option value="Int">Int</option>
+                          <option value="Dint">Dint</option>
+                          <option value="Lint">Lint</option>
+                          <option value="Usint">Usint</option>
+                          <option value="Uint">Uint</option>
+                          <option value="Udint">Udint</option>
+                          <option value="Ulint">Ulint</option>
+                          <option value="Real">Real</option>
+                          <option value="Lreal">Lreal</option>
+                          <option value="String">String</option>
+                          <option value="Udt">Udt</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          className="hmi-button bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold disabled:opacity-50 w-full"
+                          onClick={addTagToMonitor}
+                          disabled={!isConnected || !newMonitorTag.trim()}
+                        >
+                          ➕ Add to Monitor
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Monitoring Controls */}
-                  <div className="flex flex-col sm:flex-row gap-2 mb-4 items-center">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium">Update Interval:</label>
-                      <select
-                        value={monitoringInterval}
-                        onChange={(e) => {
-                          const newInterval = Number(e.target.value);
-                          setMonitoringInterval(newInterval);
-                          // If monitoring is active, restart with new interval
-                          if (isMonitoring) {
-                            setTimeout(() => restartMonitoring(), 50);
-                          }
-                        }}
-                        className="px-2 py-1 bg-white text-black rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      >
-                        <option value={20}>20ms (50 Hz)</option>
-                        <option value={50}>50ms (20 Hz)</option>
-                        <option value={100}>100ms (10 Hz)</option>
-                        <option value={200}>200ms (5 Hz)</option>
-                        <option value={500}>500ms (2 Hz)</option>
-                        <option value={1000}>1000ms (1 Hz)</option>
-                      </select>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
-                        onClick={startMonitoring}
-                        disabled={!isConnected || isMonitoring || monitoredTags.length === 0}
-                      >
-                        {isMonitoring ? "Monitoring..." : "Start Monitoring"}
-                      </button>
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 transition"
-                        onClick={stopMonitoring}
-                        disabled={!isMonitoring}
-                      >
-                        Stop Monitoring
-                      </button>
+                  <div className="hmi-card p-6 mb-6">
+                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-medium text-gray-600">Update Interval:</label>
+                          <select
+                            value={monitoringInterval}
+                            onChange={(e) => {
+                              const newInterval = Number(e.target.value);
+                              setMonitoringInterval(newInterval);
+                              // If monitoring is active, restart with new interval
+                              if (isMonitoring) {
+                                setTimeout(() => restartMonitoring(), 50);
+                              }
+                            }}
+                            className="hmi-select"
+                          >
+                            <option value={20}>20ms (50 Hz)</option>
+                            <option value={50}>50ms (20 Hz)</option>
+                            <option value={100}>100ms (10 Hz)</option>
+                            <option value={200}>200ms (5 Hz)</option>
+                            <option value={500}>500ms (2 Hz)</option>
+                            <option value={1000}>1000ms (1 Hz)</option>
+                          </select>
+                        </div>
+                        <div className={`status-indicator ${isMonitoring ? 'status-running' : 'status-stopped'}`}>
+                          {isMonitoring ? '🟢 ACTIVE' : '🔴 STOPPED'}
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          className="hmi-button bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
+                          onClick={startMonitoring}
+                          disabled={!isConnected || isMonitoring || monitoredTags.length === 0}
+                        >
+                          {isMonitoring ? "🔄 Monitoring..." : "▶️ Start Monitoring"}
+                        </button>
+                        <button
+                          className="hmi-button bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-semibold disabled:opacity-50"
+                          onClick={stopMonitoring}
+                          disabled={!isMonitoring}
+                        >
+                          ⏹️ Stop Monitoring
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Monitoring Table */}
                   {monitoredTags.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-semibold mb-3">Monitored Tags ({monitoredTags.length})</h4>
+                    <div className="hmi-card p-6">
+                      <h4 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                        📊 Monitored Tags ({monitoredTags.length})
+                      </h4>
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="hmi-table">
                           <thead>
-                            <tr className="border-b border-gray-300">
-                              <th className="text-left py-2 px-2">Tag Name</th>
-                              <th className="text-left py-2 px-2">Type</th>
-                              <th className="text-left py-2 px-2">Value</th>
-                              <th className="text-left py-2 px-2">Last Update</th>
-                              <th className="text-left py-2 px-2">Status</th>
-                              <th className="text-left py-2 px-2">Action</th>
+                            <tr>
+                              <th>Tag Name</th>
+                              <th>Type</th>
+                              <th>Value</th>
+                              <th>Last Update</th>
+                              <th>Status</th>
+                              <th>Action</th>
                             </tr>
                           </thead>
                           <tbody>
                             {monitoredTags.map((tag) => (
-                              <tr key={tag.id} className="border-b border-gray-200">
-                                <td className="py-2 px-2 font-mono">{tag.name}</td>
-                                <td className="py-2 px-2">{tag.type}</td>
-                                <td className="py-2 px-2 font-mono">
+                              <tr key={tag.id}>
+                                <td className="font-mono text-blue-400">{tag.name}</td>
+                                <td className="text-gray-600">{tag.type}</td>
+                                <td className="font-mono">
                                   {tag.error ? (
-                                    <span className="text-red-500">Error</span>
+                                    <span className="data-value data-critical">ERROR</span>
                                   ) : (
-                                    <span className={tag.value !== null ? "text-green-600" : "text-gray-400"}>
-                                      {tag.value !== null ? String(tag.value) : "No data"}
+                                    <span className={`data-value ${tag.value !== null ? "data-normal" : "data-low"}`}>
+                                      {tag.value !== null ? String(tag.value) : "—"}
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-2 px-2 text-xs text-gray-600">{tag.lastUpdate}</td>
-                                <td className="py-2 px-2">
+                                <td className="text-xs text-gray-500">{tag.lastUpdate}</td>
+                                <td>
                                   {tag.error ? (
-                                    <span className="text-red-500 text-xs">❌ Error</span>
+                                    <div className="status-indicator status-stopped">❌ ERROR</div>
                                   ) : tag.value !== null ? (
-                                    <span className="text-green-500 text-xs">✅ OK</span>
+                                    <div className="status-indicator status-running">✅ OK</div>
                                   ) : (
-                                    <span className="text-yellow-500 text-xs">⏳ Pending</span>
+                                    <div className="status-indicator status-warning">⏳ PENDING</div>
                                   )}
                                 </td>
-                                <td className="py-2 px-2">
+                                <td>
                                   <button
-                                    className="text-red-500 hover:text-red-700 text-xs"
+                                    className="hmi-button bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs disabled:opacity-50"
                                     onClick={() => removeTagFromMonitor(tag.id)}
                                     disabled={isMonitoring}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -884,277 +949,297 @@ export default function Page() {
             )}
             {activeTab === "HMI Demo" && (
               <div>
-                <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <span role="img" aria-label="hmi">🏭</span> HMI/SCADA Production Demo
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-800">
+                  <span role="img" aria-label="hmi">🏭</span> 
+                  Professional HMI/SCADA Production Dashboard
                 </h2>
                 
                 {/* Control Panel */}
-                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
+                <div className="hmi-panel p-6 mb-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-6">
                       <button
-                        className={`px-6 py-2 rounded-lg font-semibold transition ${
+                        className={`hmi-button px-8 py-4 text-lg font-bold transition-all ${
                           isHmiMonitoring 
-                            ? 'bg-red-500 hover:bg-red-600 text-white' 
-                            : 'bg-green-500 hover:bg-green-600 text-white'
+                            ? 'bg-red-600 hover:bg-red-700 text-white' 
+                            : 'bg-green-600 hover:bg-green-700 text-white'
                         }`}
                         onClick={isHmiMonitoring ? stopHmiMonitoring : startHmiMonitoring}
                         disabled={!isConnected}
                       >
-                        {isHmiMonitoring ? '🛑 Stop HMI Demo' : '▶️ Start HMI Demo'}
+                        {isHmiMonitoring ? '🛑 STOP HMI DEMO' : '▶️ START HMI DEMO'}
                       </button>
-                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        isHmiMonitoring ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      <div className={`status-indicator text-lg ${
+                        isHmiMonitoring ? 'status-running pulse-success' : 'status-stopped'
                       }`}>
-                        {isHmiMonitoring ? '🟢 Monitoring Active' : '⚫ Monitoring Stopped'}
+                        {isHmiMonitoring ? '🟢 MONITORING ACTIVE' : '🔴 MONITORING STOPPED'}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Last Update: {new Date().toLocaleTimeString()}
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500 mb-1">Last Update</div>
+                      <div className="text-lg font-mono text-gray-800">{new Date().toLocaleTimeString()}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Production Dashboard */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div className="hmi-grid-3 mb-8">
                   {/* Machine Status */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <span role="img" aria-label="machine">⚙️</span> Machine Status
+                  <div className="hmi-card p-6">
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="machine">⚙️</span> 
+                      Machine Status
                     </h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Status:</span>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        <div className={`status-indicator ${
                           hmiData.machineStatus === 'Running' 
-                            ? 'bg-green-100 text-green-800' 
+                            ? 'status-running' 
                             : hmiData.machineStatus === 'Stopped'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'status-stopped'
+                            : 'status-warning'
                         }`}>
                           {hmiData.machineStatus}
-                        </span>
+                        </div>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Shift:</span>
-                        <span className="font-semibold">Shift {hmiData.shift}</span>
+                        <span className="data-value data-normal">Shift {hmiData.shift}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Operator:</span>
-                        <span className="font-semibold">{hmiData.operator}</span>
+                        <span className="data-value data-normal">{hmiData.operator}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Production Metrics */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <span role="img" aria-label="production">📊</span> Production
+                  <div className="hmi-card p-6">
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="production">📊</span> 
+                      Production
                     </h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Current:</span>
-                        <span className="font-bold text-xl text-blue-600">{hmiData.productionCount}</span>
+                        <span className="data-value data-normal text-2xl">{hmiData.productionCount}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Target:</span>
-                        <span className="font-semibold">{hmiData.targetCount}</span>
+                        <span className="data-value data-normal">{hmiData.targetCount}</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="hmi-progress">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                          className="hmi-progress-bar progress-normal" 
                           style={{ width: `${Math.min((hmiData.productionCount / hmiData.targetCount) * 100, 100)}%` }}
                         ></div>
                       </div>
-                      <div className="text-center text-sm text-gray-600">
+                      <div className="text-center text-sm text-gray-500">
                         {((hmiData.productionCount / hmiData.targetCount) * 100).toFixed(1)}% Complete
                       </div>
                     </div>
                   </div>
 
                   {/* OEE Dashboard */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <span role="img" aria-label="oee">📈</span> OEE Analysis
+                  <div className="hmi-card p-6">
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="oee">📈</span> 
+                      OEE Analysis
                     </h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Overall OEE:</span>
-                        <span className={`font-bold text-xl ${
-                          hmiData.oee >= 85 ? 'text-green-600' : 
-                          hmiData.oee >= 70 ? 'text-yellow-600' : 'text-red-600'
+                        <span className={`data-value text-2xl ${
+                          hmiData.oee >= 85 ? 'data-normal' : 
+                          hmiData.oee >= 70 ? 'data-high' : 'data-critical'
                         }`}>
                           {hmiData.oee.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Availability:</span>
-                        <span className="font-semibold">{hmiData.availability.toFixed(1)}%</span>
+                        <span className="data-value data-normal">{hmiData.availability.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Performance:</span>
-                        <span className="font-semibold">{hmiData.performance.toFixed(1)}%</span>
+                        <span className="data-value data-normal">{hmiData.performance.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Quality:</span>
-                        <span className="font-semibold">{hmiData.qualityRate.toFixed(1)}%</span>
+                        <span className="data-value data-normal">{hmiData.qualityRate.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Process Parameters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div className="hmi-grid-4 mb-8">
                   {/* Temperature */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <span role="img" aria-label="temperature">🌡️</span> Temperature
+                  <div className="hmi-card p-6">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="temperature">🌡️</span> 
+                      Temperature
                     </h4>
                     <div className="text-center">
-                      <div className={`text-3xl font-bold mb-2 ${
-                        hmiData.temperature > 80 ? 'text-red-600' : 
-                        hmiData.temperature > 60 ? 'text-yellow-600' : 'text-green-600'
+                      <div className={`data-value text-4xl mb-4 ${
+                        hmiData.temperature > 80 ? 'data-critical' : 
+                        hmiData.temperature > 60 ? 'data-high' : 'data-normal'
                       }`}>
                         {hmiData.temperature.toFixed(1)}°C
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="hmi-progress">
                         <div 
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            hmiData.temperature > 80 ? 'bg-red-500' : 
-                            hmiData.temperature > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                          className={`hmi-progress-bar transition-all duration-500 ${
+                            hmiData.temperature > 80 ? 'progress-critical' : 
+                            hmiData.temperature > 60 ? 'progress-warning' : 'progress-normal'
                           }`}
                           style={{ width: `${Math.min((hmiData.temperature / 100) * 100, 100)}%` }}
                         ></div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        Target: 70°C | Max: 100°C
                       </div>
                     </div>
                   </div>
 
                   {/* Pressure */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <span role="img" aria-label="pressure">🔧</span> Pressure
+                  <div className="hmi-card p-6">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="pressure">🔧</span> 
+                      Pressure
                     </h4>
                     <div className="text-center">
-                      <div className={`text-3xl font-bold mb-2 ${
-                        hmiData.pressure > 8 ? 'text-red-600' : 
-                        hmiData.pressure > 6 ? 'text-yellow-600' : 'text-green-600'
+                      <div className={`data-value text-4xl mb-4 ${
+                        hmiData.pressure > 8 ? 'data-critical' : 
+                        hmiData.pressure > 6 ? 'data-high' : 'data-normal'
                       }`}>
                         {hmiData.pressure.toFixed(1)} bar
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="hmi-progress">
                         <div 
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            hmiData.pressure > 8 ? 'bg-red-500' : 
-                            hmiData.pressure > 6 ? 'bg-yellow-500' : 'bg-green-500'
+                          className={`hmi-progress-bar transition-all duration-500 ${
+                            hmiData.pressure > 8 ? 'progress-critical' : 
+                            hmiData.pressure > 6 ? 'progress-warning' : 'progress-normal'
                           }`}
                           style={{ width: `${Math.min((hmiData.pressure / 10) * 100, 100)}%` }}
                         ></div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        Target: 5 bar | Max: 10 bar
                       </div>
                     </div>
                   </div>
 
                   {/* Vibration */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <span role="img" aria-label="vibration">📳</span> Vibration
+                  <div className="hmi-card p-6">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="vibration">📳</span> 
+                      Vibration
                     </h4>
                     <div className="text-center">
-                      <div className={`text-3xl font-bold mb-2 ${
-                        hmiData.vibration > 5 ? 'text-red-600' : 
-                        hmiData.vibration > 3 ? 'text-yellow-600' : 'text-green-600'
+                      <div className={`data-value text-4xl mb-4 ${
+                        hmiData.vibration > 5 ? 'data-critical' : 
+                        hmiData.vibration > 3 ? 'data-high' : 'data-normal'
                       }`}>
                         {hmiData.vibration.toFixed(2)} mm/s
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="hmi-progress">
                         <div 
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            hmiData.vibration > 5 ? 'bg-red-500' : 
-                            hmiData.vibration > 3 ? 'bg-yellow-500' : 'bg-green-500'
+                          className={`hmi-progress-bar transition-all duration-500 ${
+                            hmiData.vibration > 5 ? 'progress-critical' : 
+                            hmiData.vibration > 3 ? 'progress-warning' : 'progress-normal'
                           }`}
                           style={{ width: `${Math.min((hmiData.vibration / 10) * 100, 100)}%` }}
                         ></div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        Target: 2 mm/s | Max: 10 mm/s
                       </div>
                     </div>
                   </div>
 
                   {/* Cycle Time */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <span role="img" aria-label="cycle">⏱️</span> Cycle Time
+                  <div className="hmi-card p-6">
+                    <h4 className="text-lg font-bold mb-4 flex items-center gap-3 text-gray-800">
+                      <span role="img" aria-label="cycle">⏱️</span> 
+                      Cycle Time
                     </h4>
                     <div className="text-center">
-                      <div className={`text-3xl font-bold mb-2 ${
-                        hmiData.cycleTime > 30 ? 'text-red-600' : 
-                        hmiData.cycleTime > 20 ? 'text-yellow-600' : 'text-green-600'
+                      <div className={`data-value text-4xl mb-4 ${
+                        hmiData.cycleTime > 30 ? 'data-critical' : 
+                        hmiData.cycleTime > 20 ? 'data-high' : 'data-normal'
                       }`}>
                         {hmiData.cycleTime.toFixed(1)}s
                       </div>
-                      <div className="text-sm text-gray-600">
-                        Target: 15.0s
+                      <div className="text-xs text-gray-500">
+                        Target: 15.0s | Max: 30.0s
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Maintenance Info */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <span role="img" aria-label="maintenance">🔧</span> Maintenance Schedule
+                <div className="hmi-card p-6 mb-8">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                    <span role="img" aria-label="maintenance">🔧</span> 
+                    Maintenance Schedule
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="hmi-grid-2">
                     <div>
-                      <h4 className="font-semibold mb-2 text-gray-700">Last Maintenance</h4>
-                      <div className="bg-green-50 rounded-lg p-3">
-                        <div className="text-lg font-semibold text-green-800">{hmiData.lastMaintenance}</div>
-                        <div className="text-sm text-green-600">Completed successfully</div>
+                      <h4 className="font-semibold mb-3 text-gray-600">Last Maintenance</h4>
+                      <div className="hmi-card p-4 bg-green-50 border-green-200">
+                        <div className="data-value data-normal text-xl mb-2">{hmiData.lastMaintenance}</div>
+                        <div className="text-sm text-green-600">✅ Completed successfully</div>
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2 text-gray-700">Next Maintenance</h4>
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <div className="text-lg font-semibold text-blue-800">{hmiData.nextMaintenance}</div>
-                        <div className="text-sm text-blue-600">Scheduled maintenance</div>
+                      <h4 className="font-semibold mb-3 text-gray-600">Next Maintenance</h4>
+                      <div className="hmi-card p-4 bg-blue-50 border-blue-200">
+                        <div className="data-value data-normal text-xl mb-2">{hmiData.nextMaintenance}</div>
+                        <div className="text-sm text-blue-600">📅 Scheduled maintenance</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* PLC Tag Information */}
-                <div className="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <span role="img" aria-label="tags">🏷️</span> Required PLC Tags
+                <div className="mt-6 hmi-card p-6">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+                    <span role="img" aria-label="tags">🏷️</span> 
+                    Required PLC Tags
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                    <div className="bg-white rounded-lg p-3">
-                      <h4 className="font-semibold mb-2">Machine Control</h4>
-                      <ul className="space-y-1 text-gray-600">
-                        <li><code>HMI_Machine_Status</code> (String)</li>
-                        <li><code>HMI_Production_Count</code> (Dint)</li>
-                        <li><code>HMI_Target_Count</code> (Dint)</li>
-                        <li><code>HMI_Cycle_Time</code> (Real)</li>
+                  <div className="hmi-grid-3 gap-4 text-sm">
+                    <div className="hmi-card p-4">
+                      <h4 className="font-semibold mb-3 text-gray-800">Machine Control</h4>
+                      <ul className="space-y-2 text-gray-600">
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Machine_Status</code> (String)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Production_Count</code> (Dint)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Target_Count</code> (Dint)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Cycle_Time</code> (Real)</li>
                       </ul>
                     </div>
-                    <div className="bg-white rounded-lg p-3">
-                      <h4 className="font-semibold mb-2">Process Parameters</h4>
-                      <ul className="space-y-1 text-gray-600">
-                        <li><code>HMI_Temperature</code> (Real)</li>
-                        <li><code>HMI_Pressure</code> (Real)</li>
-                        <li><code>HMI_Vibration</code> (Real)</li>
-                        <li><code>HMI_Quality_Rate</code> (Real)</li>
+                    <div className="hmi-card p-4">
+                      <h4 className="font-semibold mb-3 text-gray-800">Process Parameters</h4>
+                      <ul className="space-y-2 text-gray-600">
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Temperature</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Pressure</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Vibration</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Quality_Rate</code> (Real)</li>
                       </ul>
                     </div>
-                    <div className="bg-white rounded-lg p-3">
-                      <h4 className="font-semibold mb-2">OEE & Personnel</h4>
-                      <ul className="space-y-1 text-gray-600">
-                        <li><code>HMI_Efficiency</code> (Real)</li>
-                        <li><code>HMI_Availability</code> (Real)</li>
-                        <li><code>HMI_Performance</code> (Real)</li>
-                        <li><code>HMI_Shift</code> (Int)</li>
-                        <li><code>HMI_Operator</code> (String)</li>
+                    <div className="hmi-card p-4">
+                      <h4 className="font-semibold mb-3 text-gray-800">OEE & Personnel</h4>
+                      <ul className="space-y-2 text-gray-600">
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Efficiency</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Availability</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Performance</code> (Real)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Shift</code> (Int)</li>
+                        <li><code className="bg-gray-100 px-2 py-1 rounded text-xs">HMI_Operator</code> (String)</li>
                       </ul>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-800">
                       <strong>Note:</strong> Create these tags in your PLC with the specified data types. 
                       The demo will read these tags every second to display real-time production data.
@@ -1374,15 +1459,37 @@ export default function Page() {
           </div>
         </div>
         {/* Right: Activity Log */}
-        <div className="space-y-6">
-          <div className="bg-white bg-opacity-90 rounded-2xl shadow p-6 h-full flex flex-col">
-            <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><span role="img" aria-label="log">📝</span> Activity Log</h2>
-            <div className="flex-1 h-64 overflow-y-auto bg-gray-50 p-3 rounded-lg font-mono text-xs text-gray-700">
-              {logs.length === 0 ? (
-                <div className="text-gray-400 italic">Activity will be logged here when you interact with the PLC.</div>
+        <div className="w-80 bg-gray-50 border-l border-gray-200 p-6 flex flex-col">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-3 text-gray-800">
+            <span role="img" aria-label="log">📝</span> 
+            Activity Log
+          </h2>
+          <div className="flex-1 overflow-y-auto bg-white p-4 rounded-lg font-mono text-sm border border-gray-200">
+            {logs.length === 0 ? (
+                <div className="text-gray-500 italic text-center py-8">
+                  Activity will be logged here when you interact with the PLC.
+                </div>
               ) : (
                 logs.map((log) => (
-                  <div key={log.id} className={`mb-1 ${log.level === 'error' ? 'text-red-500' : log.level === 'success' ? 'text-green-600' : log.level === 'warning' ? 'text-yellow-600' : 'text-gray-700'}`}>{`[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}`}</div>
+                  <div key={log.id} className={`mb-2 p-2 rounded ${
+                    log.level === 'error' ? 'bg-red-50 text-red-800 border-l-4 border-red-500' : 
+                    log.level === 'success' ? 'bg-green-50 text-green-800 border-l-4 border-green-500' : 
+                    log.level === 'warning' ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500' : 
+                    'bg-gray-50 text-gray-800 border-l-4 border-gray-400'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">[{log.timestamp}]</span>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        log.level === 'error' ? 'bg-red-100 text-red-800' : 
+                        log.level === 'success' ? 'bg-green-100 text-green-800' : 
+                        log.level === 'warning' ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {log.level.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="mt-1">{log.message}</div>
+                  </div>
                 ))
               )}
             </div>

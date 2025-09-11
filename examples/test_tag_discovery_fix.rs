@@ -1,4 +1,4 @@
-use rust_ethernet_ip::{EipClient, PlcValue};
+use rust_ethernet_ip::EipClient;
 use std::error::Error;
 
 #[tokio::main]
