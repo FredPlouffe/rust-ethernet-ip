@@ -272,6 +272,7 @@ pub mod error;
 pub mod ffi;
 pub mod monitoring; // Enterprise-grade monitoring and health checks
 pub mod plc_manager;
+#[cfg(feature = "python")]
 pub mod python;
 pub mod subscription;
 pub mod tag_manager;
