@@ -1,9 +1,3 @@
-[workspace]
-members = [
-    ".",  # Main library (current directory)
-    "pywrapper"  # Python wrapper
-]
-
 [package]
 name = "rust-ethernet-ip"
 version = "0.5.3"
@@ -11,8 +5,8 @@ edition = "2021"
 authors = ["Sergio Gallegos <sergio@example.com>"]
 description = "High-performance EtherNet/IP communication library for Allen-Bradley CompactLogix and ControlLogix PLCs"
 license = "MIT"
-repository = "https://github.com/sergiogallegos/rust-ethernet-ip"
-homepage = "https://github.com/sergiogallegos/rust-ethernet-ip"
+repository = "https://github.com/FredPlouffe/rust-ethernet-ip"
+homepage = "https://github.com/FredPlouffe/rust-ethernet-ip"
 documentation = "https://docs.rs/rust_ethernet_ip"
 readme = "README.md"
 keywords = ["ethernet-ip", "plc", "industrial", "automation", "allen-bradley"]
@@ -21,14 +15,9 @@ rust-version = "1.70"
 
 # Exclude large files that aren't needed for the library
 exclude = [
-    # Next.js build artifacts (huge!)
     "examples/**/frontend/.next/",
     "examples/**/frontend/node_modules/",
-    
-    # Package lock files (large and not needed)
     "**/package-lock.json",
-    
-    # Compiled binaries
     "**/*.dll.a",
     "**/*.dll",
     "**/*.so",
@@ -36,32 +25,26 @@ exclude = [
     "**/*.exe",
     "**/*.lib",
     "**/*.pdb",
-    
-    # Build/cache directories
     "**/target/",
     "**/.next/",
     "**/dist/",
     "**/build/",
     "**/cache/",
-    
-    # Development files
     "**/.vscode/",
     "**/.idea/",
     "**/.vs/",
     "**/bin/",
     "**/obj/",
-    
-    # Trace and log files
     "**/.next/trace",
-    
-    # Example C# projects (keep source, exclude builds)
     "examples/**/bin/",
     "examples/**/obj/",
+    # EXCLUEZ aussi le pywrapper pour éviter qu'il soit compilé
+    "pywrapper/",
 ]
 
 [lib]
 name = "rust_ethernet_ip"
-crate-type = ["rlib", "cdylib"]  # Added staticlib for Python bindings
+crate-type = ["rlib", "cdylib"]
 
 [[bin]]
 name = "enip-test"
@@ -93,7 +76,6 @@ criterion = "0.5"
 [features]
 default = []
 ffi = []  # Enable C FFI exports
-
 
 [build-dependencies]
 vergen = { version = "8.3", features = ["build", "git", "gitcl"] }
