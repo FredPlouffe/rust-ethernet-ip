@@ -61,7 +61,7 @@ exclude = [
 
 [lib]
 name = "rust_ethernet_ip"
-crate-type = ["rlib", "cdylib", "staticlib"]  # Added staticlib for Python bindings
+crate-type = ["rlib", "cdylib"]  # Added staticlib for Python bindings
 
 [[bin]]
 name = "enip-test"
@@ -81,7 +81,6 @@ log = "0.4"
 env_logger = "0.10"
 lazy_static = "1.4"
 vergen = { version = "8.3", features = ["build", "git", "gitcl"] }
-pyo3 = { version = "0.26", features = ["extension-module"] }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
 regex = "1.0"
@@ -94,7 +93,7 @@ criterion = "0.5"
 [features]
 default = []
 ffi = []  # Enable C FFI exports
-python = ["pyo3/extension-module"]  # Enable Python bindings
+
 
 [build-dependencies]
 vergen = { version = "8.3", features = ["build", "git", "gitcl"] }
