@@ -1,259 +1,19 @@
-// lib.rs - Rust EtherNet/IP Driver Library with Comprehensive Documentation
+// lib.rs - Rust EtherNet/IP Driver Library with Port Routing Support
 // =========================================================================
 //
-// # Rust EtherNet/IP Driver Library v0.5.3
+// # Rust EtherNet/IP Driver Library v0.5.3 + Port Routing
 //
 // A high-performance, production-ready EtherNet/IP communication library for
 // Allen-Bradley CompactLogix and ControlLogix PLCs, written in pure Rust with
 // comprehensive language bindings (C#, Python, Go, JavaScript/TypeScript).
+// Enhanced with port routing support for connecting to processors in different slots.
 //
-// ## Overview
+// ## Port Routing Features
 //
-// This library provides a complete implementation of the EtherNet/IP protocol
-// and Common Industrial Protocol (CIP) for communicating with Allen-Bradley
-// CompactLogix and ControlLogix series PLCs. It offers native Rust APIs, comprehensive
-// language bindings, and production-ready features for enterprise deployment.
-//
-// ## Architecture
-//
-// ```text
-// ┌─────────────────────────────────────────────────────────────────────────────────┐
-// │                              Application Layer                                  │
-// │  ┌─────────────┐  ┌─────────────────────────────────────────────────────────┐  │
-// │  │    Rust     │  │                    C# Ecosystem                         │  │
-// │  │   Native    │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │  │
-// │  │             │  │  │     WPF     │  │  WinForms   │  │   ASP.NET Core  │  │  │
-// │  │             │  │  │  Desktop    │  │  Desktop    │  │    Web API      │  │  │
-// │  │             │  │  └─────────────┘  └─────────────┘  └─────────┬───────┘  │  │
-// │  │             │  │                                               │           │  │
-// │  │             │  │                                    ┌─────────┴───────┐  │  │
-// │  │             │  │                                    │  TypeScript +   │  │  │
-// │  │             │  │                                    │  React Frontend │  │  │
-// │  │             │  │                                    │  (HTTP/REST)    │  │  │
-// │  │             │  │                                    └─────────────────┘  │  │
-// │  └─────────────┘  └─────────────────────────────────────────────────────────┘  │
-// │  ┌─────────────┐  ┌─────────────────────────────────────────────────────────┐  │
-// │  │   Python    │  │                    Go Ecosystem                         │  │
-// │  │  PyO3       │  │  ┌─────────────┐  ┌─────────────────────────────────┐  │  │
-// │  │  Bindings   │  │  │   CGO       │  │        Next.js Frontend         │  │  │
-// │  │             │  │  │  Backend    │  │  ┌─────────────┐  ┌─────────────┐  │  │
-// │  │             │  │  │             │  │  │ TypeScript  │  │   React     │  │  │
-// │  │             │  │  │             │  │  │ Components  │  │ Components  │  │  │
-// │  │             │  │  └─────────────┘  │  └─────────────┘  └─────────────┘  │  │
-// │  │             │  │                   └─────────────────────────────────┘  │  │
-// │  └─────────────┘  └─────────────────────────────────────────────────────────┘  │
-// │  ┌─────────────────────────────────────────────────────────────────────────┐  │
-// │  │                    Vue.js Ecosystem                                     │  │
-// │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────────┐  │  │
-// │  │  │   Vue 3     │  │ TypeScript  │  │        Vite Build System        │  │  │
-// │  │  │ Components  │  │   Support   │  │     (Hot Module Replacement)     │  │  │
-// │  │  └─────────────┘  └─────────────┘  └─────────────────────────────────┘  │  │
-// │  └─────────────────────────────────────────────────────────────────────────┘  │
-// └─────────────────────┬─────────────────────────────────────────────────────────┘
-//                       │
-// ┌─────────────────────┴─────────────────────────────────────────────────────────┐
-// │                        Language Wrappers                                      │
-// │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-// │  │   C# FFI    │  │  Python     │  │    Go       │  │   JavaScript/TS     │  │
-// │  │  Wrapper    │  │  PyO3       │  │   CGO       │  │   FFI Bindings      │  │
-// │  │             │  │  Bindings   │  │  Bindings   │  │                     │  │
-// │  │ • 22 funcs  │  │ • Native    │  │ • Native    │  │ • Node.js Support   │  │
-// │  │ • Type-safe │  │ • Async     │  │ • Concurrent│  │ • Browser Support   │  │
-// │  │ • Cross-plat│  │ • Cross-plat│  │ • Cross-plat│  │ • TypeScript Types  │  │
-// │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-// └─────────────────────┬─────────────────────────────────────────────────────────┘
-//                       │
-// ┌─────────────────────┴─────────────────────────────────────────────────────────┐
-// │                         Core Rust Library                                     │
-// │  ┌─────────────────────────────────────────────────────────────────────────┐  │
-// │  │                           EipClient                                     │  │
-// │  │  • Connection Management & Session Handling                            │  │
-// │  │  • Advanced Tag Operations & Program-Scoped Tag Support                │  │
-// │  │  • Complete Data Type Support (13 Allen-Bradley types)                 │  │
-// │  │  • Advanced Tag Path Parsing (arrays, bits, UDTs, strings)             │  │
-// │  │  • Real-Time Subscriptions with Event-Driven Notifications             │  │
-// │  │  • High-Performance Batch Operations (2,000+ ops/sec)                  │  │
-// │  └─────────────────────────────────────────────────────────────────────────┘  │
-// │  ┌─────────────────────────────────────────────────────────────────────────┐  │
-// │  │                    Protocol Implementation                              │  │
-// │  │  • EtherNet/IP Encapsulation Protocol                                  │  │
-// │  │  • CIP (Common Industrial Protocol)                                    │  │
-// │  │  • Symbolic Tag Addressing with Advanced Parsing                       │  │
-// │  │  • Comprehensive CIP Error Code Mapping                                │  │
-// │  └─────────────────────────────────────────────────────────────────────────┘  │
-// │  ┌─────────────────────────────────────────────────────────────────────────┐  │
-// │  │                        Network Layer                                    │  │
-// │  │  • TCP Socket Management with Connection Pooling                       │  │
-// │  │  • Async I/O with Tokio Runtime                                        │  │
-// │  │  • Robust Error Handling & Network Resilience                          │  │
-// │  │  • Session Management & Automatic Reconnection                         │  │
-// │  └─────────────────────────────────────────────────────────────────────────┘  │
-// └─────────────────────────────────────────────────────────────────────────────────┘
-// ```
-//
-// ## Integration Paths
-//
-// ### 🦀 **Native Rust Applications**
-// Direct library usage with full async support and zero-overhead abstractions.
-// Perfect for high-performance applications and embedded systems.
-//
-// ### 🖥️ **Desktop Applications (C#)**
-// - **WPF**: Modern desktop applications with MVVM architecture
-// - **WinForms**: Traditional Windows applications with familiar UI patterns
-// - Uses C# FFI wrapper for seamless integration
-//
-// ### 🐍 **Python Applications**
-// - **Native Python Bindings**: Direct PyO3 integration with full async support
-// - **Cross-Platform**: Windows, Linux, macOS support
-// - **Easy Installation**: pip install or maturin development
-//
-// ### 🐹 **Go Applications**
-// - **CGO Bindings**: Native Go integration with C FFI
-// - **High Performance**: Zero-copy operations where possible
-// - **Concurrent**: Full goroutine support for concurrent operations
-//
-// ### 🌐 **Web Applications**
-// - **ASP.NET Core Web API**: RESTful backend service
-// - **TypeScript + React Frontend**: Modern web dashboard via HTTP/REST API
-// - **Vue.js Applications**: Modern reactive web interfaces
-// - **Scalable Architecture**: Backend handles PLC communication, frontend provides UI
-//
-// ### 🔧 **System Integration**
-// - **C/C++ Applications**: Direct FFI integration
-// - **Other .NET Languages**: VB.NET, F#, etc. via C# wrapper
-// - **Microservices**: ASP.NET Core API as a service component
-//
-// ## Features
-//
-// ### Core Capabilities
-// - **High Performance**: 2,000+ operations per second with batch operations
-// - **Real-Time Subscriptions**: Event-driven notifications with 1ms-10s intervals
-// - **Complete Data Types**: All Allen-Bradley native data types with type-safe operations
-// - **Advanced Tag Addressing**: Program-scoped, arrays, bits, UDTs, strings
-// - **Batch Operations**: High-performance multi-tag read/write with 2,000+ ops/sec
-// - **Async I/O**: Built on Tokio for excellent concurrency and performance
-// - **Error Handling**: Comprehensive CIP error code mapping and reporting
-// - **Memory Safe**: Zero-copy operations where possible, proper resource cleanup
-// - **Production Ready**: Enterprise-grade monitoring, health checks, and configuration
-//
-// ### Supported PLCs
-// - **CompactLogix L1x, L2x, L3x, L4x, L5x series** (Primary focus)
-// - **ControlLogix L6x, L7x, L8x series** (Full support)
-// - Optimized for PC applications (Windows, Linux, macOS)
-//
-// ### Advanced Tag Addressing
-// - **Program-scoped tags**: `Program:MainProgram.Tag1`
-// - **Array element access**: `MyArray[5]`, `MyArray[1,2,3]`
-// - **Bit-level operations**: `MyDINT.15` (access individual bits)
-// - **UDT member access**: `MyUDT.Member1.SubMember`
-// - **String operations**: `MyString.LEN`, `MyString.DATA[5]`
-// - **Complex nested paths**: `Program:Production.Lines[2].Stations[5].Motor.Status.15`
-//
-// ### Complete Data Type Support
-// - **BOOL**: Boolean values
-// - **SINT, INT, DINT, LINT**: Signed integers (8, 16, 32, 64-bit)
-// - **USINT, UINT, UDINT, ULINT**: Unsigned integers (8, 16, 32, 64-bit)
-// - **REAL, LREAL**: Floating point (32, 64-bit IEEE 754)
-// - **STRING**: Variable-length strings
-// - **UDT**: User Defined Types with full nesting support
-//
-// ### Protocol Support
-// - **EtherNet/IP**: Complete encapsulation protocol implementation
-// - **CIP**: Common Industrial Protocol for tag operations
-// - **Symbolic Addressing**: Direct tag name resolution with advanced parsing
-// - **Session Management**: Proper registration/unregistration sequences
-//
-// ### Integration Options
-// - **Native Rust**: Direct library usage with full async support
-// - **C# Desktop Applications**: WPF and WinForms via C# FFI wrapper
-// - **Python Applications**: Native PyO3 bindings with full async support
-// - **Go Applications**: CGO bindings with concurrent operations
-// - **Web Applications**: ASP.NET Core API + TypeScript/React/Vue frontend
-// - **C/C++ Integration**: Direct FFI functions for system integration
-// - **Cross-Platform**: Windows, Linux, macOS support
-//
-// ## Performance Characteristics
-//
-// Benchmarked on typical industrial hardware:
-//
-// | Operation | Performance | Notes |
-// |-----------|-------------|-------|
-// | Read BOOL | 1,500+ ops/sec | Single tag operations |
-// | Read DINT | 1,400+ ops/sec | 32-bit integer tags |
-// | Read REAL | 1,300+ ops/sec | Floating point tags |
-// | Write BOOL | 800+ ops/sec | Single tag operations |
-// | Write DINT | 750+ ops/sec | 32-bit integer tags |
-// | Write REAL | 700+ ops/sec | Floating point tags |
-// | **Batch Read** | **2,000+ ops/sec** | **Multi-tag operations** |
-// | **Batch Write** | **1,500+ ops/sec** | **Multi-tag operations** |
-// | **Real-Time Subscriptions** | **1ms-10s intervals** | **Event-driven** |
-// | Connection | <1 second | Initial session setup |
-// | Tag Path Parsing | 10,000+ ops/sec | Advanced addressing |
-//
-// ## Security Considerations
-//
-// - **No Authentication**: EtherNet/IP protocol has limited built-in security
-// - **Network Level**: Implement firewall rules and network segmentation
-// - **PLC Protection**: Use PLC safety locks and access controls
-// - **Data Validation**: Always validate data before writing to PLCs
-//
-// ## Thread Safety
-//
-// The `EipClient` struct is **NOT** thread-safe. For multi-threaded applications:
-// - Use one client per thread, OR
-// - Implement external synchronization (Mutex/RwLock), OR
-// - Use a connection pool pattern
-//
-// ## Memory Usage
-//
-// - **Per Connection**: ~8KB base memory footprint
-// - **Network Buffers**: ~2KB per active connection
-// - **Tag Cache**: Minimal (tag names only when needed)
-// - **Total Typical**: <10MB for most applications
-//
-// ## Error Handling Philosophy
-//
-// This library follows Rust's error handling principles:
-// - All fallible operations return `Result<T, EtherNetIpError>`
-// - Errors are propagated rather than panicking
-// - Detailed error messages with CIP status code mapping
-// - Network errors are distinguished from protocol errors
-//
-// ## Examples
-//
-// See the `examples/` directory for comprehensive usage examples, including:
-// - Advanced tag addressing demonstrations
-// - Complete data type showcase
-// - Real-world industrial automation scenarios
-// - Professional HMI/SCADA dashboard
-// - Multi-language integration examples (C#, Python, Go, TypeScript, Vue)
-//
-// ## Changelog
-//
-// ### v0.5.3 (January 2025) - **CURRENT**
-// - Enhanced safety documentation for all FFI functions
-// - Comprehensive clippy optimizations and code quality improvements
-// - Improved memory management and connection pool handling
-// - Enhanced Python, C#, and Go wrapper stability
-// - Production-ready code quality with 0 warnings
-//
-// ### v0.5.0 (January 2025)
-// - Professional HMI/SCADA production dashboard
-// - Enterprise-grade monitoring and health checks
-// - Production-ready configuration management
-// - Comprehensive metrics collection and reporting
-// - Enhanced error handling and recovery mechanisms
-//
-// ### v0.4.0 (January 2025)
-// - Real-time subscriptions with event-driven notifications
-// - High-performance batch operations (2,000+ ops/sec)
-// - Complete data type support for all Allen-Bradley types
-// - Advanced tag path parsing (program-scoped, arrays, bits, UDTs)
-// - Enhanced error handling and documentation
-// - Comprehensive test coverage (47+ tests)
-// - Production-ready stability and performance
-//
-// =========================================================================
+// - **PortSegment Support**: Connect to processors in specific slots via backplane
+// - **Runtime Configuration**: Change connection paths during execution
+// - **Allen-Bradley Compatible**: CIP-compliant Unconnected Send routing
+// - **Zero Breaking Changes**: Existing code continues to work unchanged
 
 use crate::udt::UdtManager;
 use lazy_static::lazy_static;
@@ -314,36 +74,203 @@ lazy_static! {
 }
 
 // =========================================================================
-// BATCH OPERATIONS DATA STRUCTURES
+// PORT ROUTING IMPLEMENTATION
+// =========================================================================
+
+/// Port routing segment for connecting to PLCs in different slots
+///
+/// This structure represents a CIP path segment that specifies how to route
+/// messages through Allen-Bradley backplanes to reach processors in specific slots.
+/// Essential for configurations where network cards and processors are in different slots.
+///
+/// # Examples
+///
+/// ```rust
+/// use rust_ethernet_ip::PortSegment;
+///
+/// // Connect to processor in slot 1 (most common)
+/// let routing = PortSegment::processor_in_slot(1);
+///
+/// // Connect to processor in slot 3 via port 2
+/// let routing = PortSegment::new(2, vec![3]);
+///
+/// // Multi-hop routing (advanced configurations)
+/// let routing = PortSegment::new(1, vec![0, 2, 5]);
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PortSegment {
+    /// Port number (typically 1 for backplane, 2 for Ethernet)
+    pub port: u16,
+    /// Link address path (slot numbers to traverse)
+    pub link: Vec<u8>,
+}
+
+impl Default for PortSegment {
+    fn default() -> Self {
+        Self::processor_in_slot(1)
+    }
+}
+
+impl PortSegment {
+    /// Creates a new port segment with specified port and link path
+    ///
+    /// # Arguments
+    ///
+    /// * `port` - Port number (1 = backplane, 2 = Ethernet)
+    /// * `link` - Vector of slot numbers to traverse
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rust_ethernet_ip::PortSegment;
+    ///
+    /// // Simple routing to slot 1
+    /// let segment = PortSegment::new(1, vec![1]);
+    ///
+    /// // Multi-hop routing through multiple slots
+    /// let segment = PortSegment::new(1, vec![0, 2, 5]);
+    /// ```
+    pub fn new(port: u16, link: Vec<u8>) -> Self {
+        Self { port, link }
+    }
+
+    /// Creates routing for a processor in a specific slot (most common use case)
+    ///
+    /// This is the standard constructor for connecting to CompactLogix processors
+    /// where the network card is in slot 0 and the processor is in another slot.
+    ///
+    /// # Arguments
+    ///
+    /// * `slot` - Slot number of the target processor (typically 1-16)
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rust_ethernet_ip::PortSegment;
+    ///
+    /// // Connect to L72 processor in slot 1 (most common)
+    /// let routing = PortSegment::processor_in_slot(1);
+    ///
+    /// // Connect to processor in slot 3
+    /// let routing = PortSegment::processor_in_slot(3);
+    /// ```
+    pub fn processor_in_slot(slot: u8) -> Self {
+        Self {
+            port: 1,        // Backplane port
+            link: vec![slot], // Target slot
+        }
+    }
+
+    /// Creates routing for Ethernet-based communication (port 2)
+    ///
+    /// Used for connecting through Ethernet modules or bridges.
+    ///
+    /// # Arguments
+    ///
+    /// * `link` - Vector of addresses to traverse
+    pub fn ethernet_routing(link: Vec<u8>) -> Self {
+        Self { port: 2, link }
+    }
+
+    /// Creates direct backplane routing (port 1, slot 0)
+    ///
+    /// Used for connecting directly to the network card's processor
+    /// or when no routing is needed.
+    pub fn direct() -> Self {
+        Self {
+            port: 1,
+            link: vec![0],
+        }
+    }
+
+    /// Encodes the port segment for CIP transmission
+    ///
+    /// Converts the port segment into the binary format required by
+    /// the CIP Unconnected Send service for routing messages.
+    ///
+    /// # Returns
+    ///
+    /// Vector of bytes representing the encoded port segment
+    pub fn encode(&self) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(2 + self.link.len());
+        
+        // Port segment format:
+        // [0x01] = Port segment identifier
+        // [port] = Port number (1 byte, even though port is u16)
+        // [link_size] = Number of link addresses
+        // [link_addresses...] = Link path addresses
+        
+        bytes.push(0x01); // Port segment identifier
+        bytes.push(self.port as u8); // Port number (typically 1 for backplane)
+        bytes.push(self.link.len() as u8); // Link path size
+        bytes.extend_from_slice(&self.link); // Link addresses
+        
+        // Pad to even length for CIP word alignment
+        if bytes.len() % 2 != 0 {
+            bytes.push(0x00);
+        }
+        
+        bytes
+    }
+
+    /// Gets a human-readable description of this port segment
+    ///
+    /// # Returns
+    ///
+    /// String describing the routing path
+    pub fn description(&self) -> String {
+        if self.link.len() == 1 && self.port == 1 {
+            format!("Processor in slot {}", self.link[0])
+        } else if self.port == 2 {
+            format!("Ethernet routing via {:?}", self.link)
+        } else {
+            format!("Port {} routing via {:?}", self.port, self.link)
+        }
+    }
+
+    /// Validates that this port segment is reasonable
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if valid, `Err` with description if invalid
+    pub fn validate(&self) -> std::result::Result<(), String> {
+        if self.link.is_empty() {
+            return Err("Link path cannot be empty".to_string());
+        }
+        
+        if self.link.len() > 8 {
+            return Err("Link path too long (max 8 hops)".to_string());
+        }
+        
+        if self.port == 0 || self.port > 255 {
+            return Err("Port number must be 1-255".to_string());
+        }
+        
+        for &slot in &self.link {
+            if slot > 31 {
+                return Err(format!("Slot number {} too high (max 31)", slot));
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+// =========================================================================
+// BATCH OPERATIONS DATA STRUCTURES  
 // =========================================================================
 
 /// Represents a single operation in a batch request
-///
-/// This enum defines the different types of operations that can be
-/// performed in a batch. Each operation specifies whether it's a read
-/// or write operation and includes the necessary parameters.
 #[derive(Debug, Clone)]
 pub enum BatchOperation {
     /// Read operation for a specific tag
-    ///
-    /// # Fields
-    ///
-    /// * `tag_name` - The name of the tag to read
     Read { tag_name: String },
 
     /// Write operation for a specific tag with a value
-    ///
-    /// # Fields
-    ///
-    /// * `tag_name` - The name of the tag to write
-    /// * `value` - The value to write to the tag
     Write { tag_name: String, value: PlcValue },
 }
 
 /// Result of a single operation in a batch request
-///
-/// This structure contains the result of executing a single batch operation,
-/// including success/failure status and the actual data or error information.
 #[derive(Debug, Clone)]
 pub struct BatchResult {
     /// The original operation that was executed
@@ -357,9 +284,6 @@ pub struct BatchResult {
 }
 
 /// Specific error types that can occur during batch operations
-///
-/// This enum provides detailed error information for batch operations,
-/// allowing for better error handling and diagnostics.
 #[derive(Debug, Clone)]
 pub enum BatchError {
     /// Tag was not found in the PLC
@@ -413,40 +337,21 @@ impl std::fmt::Display for BatchError {
 impl std::error::Error for BatchError {}
 
 /// Configuration for batch operations
-///
-/// This structure controls the behavior and performance characteristics
-/// of batch read/write operations. Proper tuning can significantly
-/// improve throughput for applications that need to process many tags.
 #[derive(Debug, Clone)]
 pub struct BatchConfig {
     /// Maximum number of operations to include in a single CIP packet
-    ///
-    /// Larger values improve performance but may exceed PLC packet size limits.
-    /// Typical range: 10-50 operations per packet.
     pub max_operations_per_packet: usize,
 
     /// Maximum packet size in bytes for batch operations
-    ///
-    /// Should not exceed the PLC's maximum packet size capability.
-    /// Typical values: 504 bytes (default), up to 4000 bytes for modern PLCs.
     pub max_packet_size: usize,
 
     /// Timeout for individual batch packets (in milliseconds)
-    ///
-    /// This is per-packet timeout, not per-operation.
-    /// Typical range: 1000-5000 milliseconds.
     pub packet_timeout_ms: u64,
 
     /// Whether to continue processing other operations if one fails
-    ///
-    /// If true, failed operations are reported but don't stop the batch.
-    /// If false, the first error stops the entire batch processing.
     pub continue_on_error: bool,
 
     /// Whether to optimize packet packing by grouping similar operations
-    ///
-    /// If true, reads and writes are grouped separately for better performance.
-    /// If false, operations are processed in the order provided.
     pub optimize_packet_packing: bool,
 }
 
@@ -463,9 +368,6 @@ impl Default for BatchConfig {
 }
 
 /// Connected session information for Class 3 explicit messaging
-///
-/// Allen-Bradley PLCs often require connected sessions for certain operations
-/// like STRING writes. This structure maintains the connection state.
 #[derive(Debug, Clone)]
 pub struct ConnectedSession {
     /// Connection ID assigned by the PLC
@@ -568,7 +470,6 @@ impl ConnectedSession {
                 session.t_to_o_params.size = 504;
                 session.o_to_t_params.priority = 0x00; // Low priority
                 session.t_to_o_params.priority = 0x00;
-                println!("🔧 [CONFIG 1] Conservative: 504 bytes, 200ms RPI, low priority");
             }
             2 => {
                 // Config 2: Compact parameters
@@ -578,7 +479,6 @@ impl ConnectedSession {
                 session.t_to_o_params.size = 256;
                 session.o_to_t_params.priority = 0x02; // Scheduled priority
                 session.t_to_o_params.priority = 0x02;
-                println!("🔧 [CONFIG 2] Compact: 256 bytes, 50ms RPI, scheduled priority");
             }
             3 => {
                 // Config 3: Minimal parameters
@@ -588,7 +488,6 @@ impl ConnectedSession {
                 session.t_to_o_params.size = 128;
                 session.o_to_t_params.priority = 0x03; // Urgent priority
                 session.t_to_o_params.priority = 0x03;
-                println!("🔧 [CONFIG 3] Minimal: 128 bytes, 1000ms RPI, urgent priority");
             }
             4 => {
                 // Config 4: Standard Rockwell parameters (from documentation)
@@ -599,7 +498,6 @@ impl ConnectedSession {
                 session.o_to_t_params.connection_type = 0x01; // Multicast
                 session.t_to_o_params.connection_type = 0x01;
                 session.originator_vendor_id = 0x001D; // Rockwell vendor ID
-                println!("🔧 [CONFIG 4] Rockwell standard: 500 bytes, 100ms RPI, multicast, Rockwell vendor");
             }
             5 => {
                 // Config 5: Large buffer parameters
@@ -609,11 +507,9 @@ impl ConnectedSession {
                 session.t_to_o_params.size = 1024;
                 session.o_to_t_params.variable_size = true; // Variable size
                 session.t_to_o_params.variable_size = true;
-                println!("🔧 [CONFIG 5] Large buffer: 1024 bytes, 500ms RPI, variable size");
             }
             _ => {
                 // Default config
-                println!("🔧 [CONFIG 0] Default parameters");
             }
         }
 
@@ -622,137 +518,38 @@ impl ConnectedSession {
 }
 
 /// Represents the different data types supported by Allen-Bradley PLCs
-///
-/// These correspond to the CIP data type codes used in EtherNet/IP
-/// communication. Each variant maps to a specific 16-bit type identifier
-/// that the PLC uses to describe tag data.
-///
-/// # Supported Data Types
-///
-/// ## Integer Types
-/// - **SINT**: 8-bit signed integer (-128 to 127)
-/// - **INT**: 16-bit signed integer (-32,768 to 32,767)
-/// - **DINT**: 32-bit signed integer (-2,147,483,648 to 2,147,483,647)
-/// - **LINT**: 64-bit signed integer (-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807)
-///
-/// ## Unsigned Integer Types
-/// - **USINT**: 8-bit unsigned integer (0 to 255)
-/// - **UINT**: 16-bit unsigned integer (0 to 65,535)
-/// - **UDINT**: 32-bit unsigned integer (0 to 4,294,967,295)
-/// - **ULINT**: 64-bit unsigned integer (0 to 18,446,744,073,709,551,615)
-///
-/// ## Floating Point Types
-/// - **REAL**: 32-bit IEEE 754 float (±1.18 × 10^-38 to ±3.40 × 10^38)
-/// - **LREAL**: 64-bit IEEE 754 double (±2.23 × 10^-308 to ±1.80 × 10^308)
-///
-/// ## Other Types
-/// - **BOOL**: Boolean value (true/false)
-/// - **STRING**: Variable-length string
-/// - **UDT**: User Defined Type (structured data)
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlcValue {
     /// Boolean value (single bit)
-    ///
-    /// Maps to CIP type 0x00C1. In CompactLogix PLCs, BOOL tags
-    /// are stored as single bits but transmitted as bytes over the network.
     Bool(bool),
-
     /// 8-bit signed integer (-128 to 127)
-    ///
-    /// Maps to CIP type 0x00C2. Used for small numeric values,
-    /// status codes, and compact data storage.
     Sint(i8),
-
     /// 16-bit signed integer (-32,768 to 32,767)
-    ///
-    /// Maps to CIP type 0x00C3. Common for analog input/output values,
-    /// counters, and medium-range numeric data.
     Int(i16),
-
     /// 32-bit signed integer (-2,147,483,648 to 2,147,483,647)
-    ///
-    /// Maps to CIP type 0x00C4. This is the most common integer type
-    /// in Allen-Bradley PLCs, used for counters, setpoints, and numeric values.
     Dint(i32),
-
-    /// 64-bit signed integer (-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807)
-    ///
-    /// Maps to CIP type 0x00C5. Used for large counters, timestamps,
-    /// and high-precision calculations.
+    /// 64-bit signed integer
     Lint(i64),
-
     /// 8-bit unsigned integer (0 to 255)
-    ///
-    /// Maps to CIP type 0x00C6. Used for byte data, small counters,
-    /// and status flags.
     Usint(u8),
-
     /// 16-bit unsigned integer (0 to 65,535)
-    ///
-    /// Maps to CIP type 0x00C7. Common for analog values, port numbers,
-    /// and medium-range unsigned data.
     Uint(u16),
-
     /// 32-bit unsigned integer (0 to 4,294,967,295)
-    ///
-    /// Maps to CIP type 0x00C8. Used for large counters, memory addresses,
-    /// and unsigned calculations.
     Udint(u32),
-
-    /// 64-bit unsigned integer (0 to 18,446,744,073,709,551,615)
-    ///
-    /// Maps to CIP type 0x00C9. Used for very large counters, timestamps,
-    /// and high-precision unsigned calculations.
+    /// 64-bit unsigned integer
     Ulint(u64),
-
     /// 32-bit IEEE 754 floating point number
-    ///
-    /// Maps to CIP type 0x00CA. Used for analog values, calculations,
-    /// and any data requiring decimal precision.
-    /// Range: ±1.18 × 10^-38 to ±3.40 × 10^38
     Real(f32),
-
     /// 64-bit IEEE 754 floating point number
-    ///
-    /// Maps to CIP type 0x00CB. Used for high-precision calculations,
-    /// scientific data, and extended-range floating point values.
-    /// Range: ±2.23 × 10^-308 to ±1.80 × 10^308
     Lreal(f64),
-
     /// String value
-    ///
-    /// Maps to CIP type 0x00DA. Variable-length string data
-    /// commonly used for product names, status messages, and text data.
     String(String),
-
     /// User Defined Type instance
-    ///
-    /// Maps to CIP type 0x00A0. Structured data type containing
-    /// multiple members of different types.
     Udt(HashMap<String, PlcValue>),
 }
 
 impl PlcValue {
     /// Converts the PLC value to its byte representation for network transmission
-    ///
-    /// This function handles the little-endian byte encoding required by
-    /// the EtherNet/IP protocol. Each data type has specific encoding rules:
-    ///
-    /// - BOOL: Single byte (0x00 = false, 0xFF = true)
-    /// - SINT: Single signed byte
-    /// - INT: 2 bytes in little-endian format
-    /// - DINT: 4 bytes in little-endian format
-    /// - LINT: 8 bytes in little-endian format
-    /// - USINT: Single unsigned byte
-    /// - UINT: 2 bytes in little-endian format
-    /// - UDINT: 4 bytes in little-endian format
-    /// - ULINT: 8 bytes in little-endian format
-    /// - REAL: 4 bytes IEEE 754 little-endian format
-    /// - LREAL: 8 bytes IEEE 754 little-endian format
-    ///
-    /// # Returns
-    ///
-    /// A vector of bytes ready for transmission to the PLC
     pub fn to_bytes(&self) -> Vec<u8> {
         match self {
             PlcValue::Bool(val) => vec![if *val { 0xFF } else { 0x00 }],
@@ -767,20 +564,12 @@ impl PlcValue {
             PlcValue::Real(val) => val.to_le_bytes().to_vec(),
             PlcValue::Lreal(val) => val.to_le_bytes().to_vec(),
             PlcValue::String(val) => {
-                // Try minimal approach - just length + data without padding
-                // Testing if the PLC accepts a simpler format
-
                 let mut bytes = Vec::new();
-
-                // Length field (4 bytes as DINT) - number of characters currently used
                 let length = val.len().min(82) as u32;
                 bytes.extend_from_slice(&length.to_le_bytes());
-
-                // String data - just the actual characters, no padding
                 let string_bytes = val.as_bytes();
                 let data_len = string_bytes.len().min(82);
                 bytes.extend_from_slice(&string_bytes[..data_len]);
-
                 bytes
             }
             PlcValue::Udt(_) => {
@@ -791,13 +580,6 @@ impl PlcValue {
     }
 
     /// Returns the CIP data type code for this value
-    ///
-    /// These codes are defined by the CIP specification and must match
-    /// exactly what the PLC expects for each data type.
-    ///
-    /// # Returns
-    ///
-    /// The 16-bit CIP type code for this value type
     pub fn get_data_type(&self) -> u16 {
         match self {
             PlcValue::Bool(_) => 0x00C1,   // BOOL
@@ -817,110 +599,32 @@ impl PlcValue {
     }
 }
 
-/// High-performance EtherNet/IP client for PLC communication
+/// High-performance EtherNet/IP client for PLC communication with port routing support
 ///
-/// This struct provides the core functionality for communicating with Allen-Bradley
-/// PLCs using the EtherNet/IP protocol. It handles connection management, session
-/// registration, and tag operations.
+/// Enhanced version of EipClient that includes PortSegment routing capabilities
+/// for connecting to processors in different slots through Allen-Bradley backplanes.
 ///
-/// # Thread Safety
-///
-/// The `EipClient` is **NOT** thread-safe. For multi-threaded applications:
+/// # Port Routing Examples
 ///
 /// ```rust,no_run
-/// use std::sync::Arc;
-/// use tokio::sync::Mutex;
-/// use rust_ethernet_ip::EipClient;
+/// use rust_ethernet_ip::{EipClient, PortSegment, PlcValue};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-///     // Create a thread-safe wrapper
-///     let client = Arc::new(Mutex::new(EipClient::connect("192.168.1.100:44818").await?));
+///     // Connect to processor in slot 1 (L72 processor)
+///     let mut client = EipClient::connect_with_path(
+///         "192.168.1.3:44818",
+///         Some(PortSegment::processor_in_slot(1))
+///     ).await?;
 ///
-///     // Use in multiple threads
-///     let client_clone = client.clone();
-///     tokio::spawn(async move {
-///         let mut client = client_clone.lock().await;
-///         let _ = client.read_tag("Tag1").await?;
-///         Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
-///     });
-///     Ok(())
-/// }
-/// ```
-///
-/// # Performance Characteristics
-///
-/// | Operation | Latency | Throughput | Memory |
-/// |-----------|---------|------------|---------|
-/// | Connect | 100-500ms | N/A | ~8KB |
-/// | Read Tag | 1-5ms | 1,500+ ops/sec | ~2KB |
-/// | Write Tag | 2-10ms | 600+ ops/sec | ~2KB |
-/// | Batch Read | 5-20ms | 2,000+ ops/sec | ~4KB |
-///
-/// # Error Handling
-///
-/// All operations return `Result<T, EtherNetIpError>`. Common errors include:
-///
-/// ```rust,no_run
-/// use rust_ethernet_ip::{EipClient, EtherNetIpError};
-///
-/// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
-///     match client.read_tag("Tag1").await {
-///         Ok(value) => println!("Tag value: {:?}", value),
-///         Err(EtherNetIpError::Protocol(_)) => println!("Tag does not exist"),
-///         Err(EtherNetIpError::Connection(_)) => println!("Lost connection to PLC"),
-///         Err(EtherNetIpError::Timeout(_)) => println!("Operation timed out"),
-///         Err(e) => println!("Other error: {}", e),
-///     }
-///     Ok(())
-/// }
-/// ```
-///
-/// # Examples
-///
-/// Basic usage:
-/// ```rust,no_run
-/// use rust_ethernet_ip::{EipClient, PlcValue};
-///
-/// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
-///
-///     // Read a boolean tag
-///     let motor_running = client.read_tag("MotorRunning").await?;
-///
-///     // Write an integer tag
+///     // Read/write operations work normally - routing is automatic
+///     let value = client.read_tag("Rust_Real[0]").await?;
 ///     client.write_tag("SetPoint", PlcValue::Dint(1500)).await?;
 ///
-///     // Read multiple tags in sequence
-///     let tag1 = client.read_tag("Tag1").await?;
-///     let tag2 = client.read_tag("Tag2").await?;
-///     let tag3 = client.read_tag("Tag3").await?;
+///     // Change routing at runtime if needed
+///     client.set_connection_path(PortSegment::processor_in_slot(3));
+///
 ///     Ok(())
-/// }
-/// ```
-///
-/// Advanced usage with error recovery:
-/// ```rust
-/// use rust_ethernet_ip::{EipClient, PlcValue, EtherNetIpError};
-/// use tokio::time::Duration;
-///
-/// async fn read_with_retry(client: &mut EipClient, tag: &str, retries: u32) -> Result<PlcValue, EtherNetIpError> {
-///     for attempt in 0..retries {
-///         match client.read_tag(tag).await {
-///             Ok(value) => return Ok(value),
-///             Err(EtherNetIpError::Connection(_)) => {
-///                 if attempt < retries - 1 {
-///                     tokio::time::sleep(Duration::from_secs(1)).await;
-///                     continue;
-///                 }
-///             }
-///             Err(e) => return Err(e),
-///         }
-///     }
-///     Err(EtherNetIpError::Protocol("Max retries exceeded".to_string()))
 /// }
 /// ```
 #[derive(Debug, Clone)]
@@ -951,9 +655,32 @@ pub struct EipClient {
     connection_sequence: Arc<Mutex<u32>>,
     /// Active tag subscriptions
     subscriptions: Arc<Mutex<Vec<TagSubscription>>>,
+    /// PORT ROUTING: Connection path for routing messages through backplanes
+    connection_path: Option<PortSegment>,
 }
 
 impl EipClient {
+    /// Creates a new EipClient with direct connection (no port routing)
+    ///
+    /// This is the original constructor that connects directly to the PLC
+    /// without any port routing. Compatible with existing code.
+    ///
+    /// # Arguments
+    ///
+    /// * `addr` - IP address and port (e.g., "192.168.1.100:44818")
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use rust_ethernet_ip::EipClient;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ///     let mut client = EipClient::new("192.168.1.100:44818").await?;
+    ///     // Use client...
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn new(addr: &str) -> Result<Self> {
         let addr = addr
             .parse::<SocketAddr>()
@@ -973,37 +700,145 @@ impl EipClient {
             connected_sessions: Arc::new(Mutex::new(HashMap::new())),
             connection_sequence: Arc::new(Mutex::new(1)),
             subscriptions: Arc::new(Mutex::new(Vec::new())),
+            connection_path: None, // No routing by default
         };
         client.register_session().await?;
         Ok(client)
     }
 
-    /// Public async connect function for EipClient
+    /// Creates a new EipClient with port routing support
+    ///
+    /// This constructor allows specifying a connection path for routing messages
+    /// through Allen-Bradley backplanes to reach processors in different slots.
+    ///
+    /// # Arguments
+    ///
+    /// * `addr` - IP address and port (e.g., "192.168.1.3:44818")
+    /// * `connection_path` - Optional port routing configuration
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use rust_ethernet_ip::{EipClient, PortSegment};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ///     // Connect to L72 processor in slot 1
+    ///     let mut client = EipClient::connect_with_path(
+    ///         "192.168.1.3:44818",
+    ///         Some(PortSegment::processor_in_slot(1))
+    ///     ).await?;
+    ///     
+    ///     // Now all read/write operations will be routed to slot 1
+    ///     let value = client.read_tag("MyTag").await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn connect_with_path(addr: &str, connection_path: Option<PortSegment>) -> Result<Self> {
+        let addr = addr
+            .parse::<SocketAddr>()
+            .map_err(|e| EtherNetIpError::Protocol(format!("Invalid address format: {}", e)))?;
+        
+        // Validate connection path if provided
+        if let Some(ref path) = connection_path {
+            if let Err(e) = path.validate() {
+                return Err(EtherNetIpError::Protocol(format!("Invalid connection path: {}", e)));
+            }
+        }
+        
+        let stream = TcpStream::connect(addr).await?;
+        let mut client = Self {
+            stream: Arc::new(Mutex::new(stream)),
+            session_handle: 0,
+            _connection_id: 0,
+            tag_manager: Arc::new(Mutex::new(TagManager::new())),
+            udt_manager: Arc::new(Mutex::new(UdtManager::new())),
+            _connected: Arc::new(AtomicBool::new(false)),
+            max_packet_size: 4000,
+            last_activity: Arc::new(Mutex::new(Instant::now())),
+            _session_timeout: Duration::from_secs(120),
+            batch_config: BatchConfig::default(),
+            connected_sessions: Arc::new(Mutex::new(HashMap::new())),
+            connection_sequence: Arc::new(Mutex::new(1)),
+            subscriptions: Arc::new(Mutex::new(Vec::new())),
+            connection_path, // Set the routing path
+        };
+        client.register_session().await?;
+        
+        if let Some(ref path) = client.connection_path {
+            println!("🛤️ [PORT ROUTING] Connection established with routing: {}", path.description());
+        }
+        
+        Ok(client)
+    }
+
+    /// Public async connect function for EipClient (maintains compatibility)
     pub async fn connect(addr: &str) -> Result<Self> {
         Self::new(addr).await
     }
 
+    /// Sets the connection path for port routing
+    ///
+    /// Changes the routing path for all subsequent operations. This allows
+    /// runtime reconfiguration of which processor slot to communicate with.
+    ///
+    /// # Arguments
+    ///
+    /// * `connection_path` - The new port routing configuration
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use rust_ethernet_ip::{EipClient, PortSegment};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ///     let mut client = EipClient::connect("192.168.1.3:44818").await?;
+    ///     
+    ///     // Initially no routing - talks to network card
+    ///     let value1 = client.read_tag("NetworkCardTag").await?;
+    ///     
+    ///     // Switch to processor in slot 1
+    ///     client.set_connection_path(PortSegment::processor_in_slot(1));
+    ///     let value2 = client.read_tag("ProcessorTag").await?;
+    ///     
+    ///     // Switch to processor in slot 3
+    ///     client.set_connection_path(PortSegment::processor_in_slot(3));
+    ///     let value3 = client.read_tag("OtherProcessorTag").await?;
+    ///     
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn set_connection_path(&mut self, connection_path: PortSegment) {
+        if let Err(e) = connection_path.validate() {
+            eprintln!("⚠️ [PORT ROUTING] Warning: Invalid connection path: {}", e);
+        }
+        
+        println!("🛤️ [PORT ROUTING] Switching to: {}", connection_path.description());
+        self.connection_path = Some(connection_path);
+    }
+
+    /// Gets the current connection path
+    ///
+    /// # Returns
+    ///
+    /// Reference to the current port routing configuration, or `None` if no routing is configured
+    pub fn connection_path(&self) -> Option<&PortSegment> {
+        self.connection_path.as_ref()
+    }
+
+    /// Clears the connection path (disables port routing)
+    ///
+    /// After calling this method, all communications will go directly to the
+    /// network card without any routing.
+    pub fn clear_connection_path(&mut self) {
+        if self.connection_path.is_some() {
+            println!("🛤️ [PORT ROUTING] Clearing connection path - switching to direct communication");
+        }
+        self.connection_path = None;
+    }
+
     /// Registers an EtherNet/IP session with the PLC
-    ///
-    /// This is an internal function that implements the EtherNet/IP session
-    /// registration protocol. It sends a Register Session command and
-    /// processes the response to extract the session handle.
-    ///
-    /// # Protocol Details
-    ///
-    /// The Register Session command consists of:
-    /// - EtherNet/IP Encapsulation Header (24 bytes)
-    /// - Registration Data (4 bytes: protocol version + options)
-    ///
-    /// The PLC responds with:
-    /// - Same header format with assigned session handle
-    /// - Status code indicating success/failure
-    ///
-    /// # Errors
-    ///
-    /// - Network timeout or disconnection
-    /// - Invalid response format
-    /// - PLC rejection (status code non-zero)
     async fn register_session(&mut self) -> crate::error::Result<()> {
         println!("🔌 [DEBUG] Starting session registration...");
         let packet: [u8; 28] = [
@@ -1247,10 +1082,11 @@ impl EipClient {
         result
     }
 
-    /// Reads a tag value from the PLC
+    /// Reads a tag value from the PLC with automatic port routing
     ///
     /// This function performs a CIP read request for the specified tag.
-    /// The tag's data type is automatically determined from the PLC's response.
+    /// If port routing is configured, the request is automatically wrapped
+    /// in an Unconnected Send service to route through the backplane.
     ///
     /// # Arguments
     ///
@@ -1263,18 +1099,22 @@ impl EipClient {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use rust_ethernet_ip::{EipClient, PlcValue};
+    /// use rust_ethernet_ip::{EipClient, PortSegment, PlcValue};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
+    ///     // With port routing to slot 1
+    ///     let mut client = EipClient::connect_with_path(
+    ///         "192.168.1.3:44818",
+    ///         Some(PortSegment::processor_in_slot(1))
+    ///     ).await?;
     ///
-    ///     // Read different data types
+    ///     // Read different data types - routing is automatic
     ///     let bool_val = client.read_tag("MotorRunning").await?;
     ///     let int_val = client.read_tag("Counter").await?;
     ///     let real_val = client.read_tag("Temperature").await?;
+    ///     let array_val = client.read_tag("Rust_Real[5]").await?;
     ///
-    ///     // Handle the result
     ///     match bool_val {
     ///         PlcValue::Bool(true) => println!("Motor is running"),
     ///         PlcValue::Bool(false) => println!("Motor is stopped"),
@@ -1283,21 +1123,9 @@ impl EipClient {
     ///     Ok(())
     /// }
     /// ```
-    ///
-    /// # Performance
-    ///
-    /// - Latency: 1-5ms typical
-    /// - Throughput: 1,500+ ops/sec
-    /// - Network: 1 request/response cycle
-    ///
-    /// # Error Handling
-    ///
-    /// Common errors:
-    /// - `Protocol`: Tag doesn't exist or invalid format
-    /// - `Connection`: Lost connection to PLC
-    /// - `Timeout`: Operation timed out
     pub async fn read_tag(&mut self, tag_name: &str) -> crate::error::Result<PlcValue> {
         self.validate_session().await?;
+        
         // Check if we have metadata for this tag
         if let Some(metadata) = self.get_tag_metadata(tag_name).await {
             // Handle UDT tags
@@ -1311,7 +1139,7 @@ impl EipClient {
             }
         }
 
-        // Standard tag reading
+        // Standard tag reading with automatic routing
         let response = self
             .send_cip_request(&self.build_read_request(tag_name))
             .await?;
@@ -1319,11 +1147,11 @@ impl EipClient {
         self.parse_cip_response(&cip_data)
     }
 
-    /// Writes a value to a PLC tag
+    /// Writes a value to a PLC tag with automatic port routing
     ///
-    /// This method automatically determines the best communication method based on the data type:
-    /// - STRING values use unconnected explicit messaging with proper AB STRING format
-    /// - Other data types use standard unconnected messaging
+    /// This method automatically determines the best communication method based on the data type
+    /// and applies port routing if configured. All write operations are automatically routed
+    /// through the specified connection path.
     ///
     /// # Arguments
     ///
@@ -1332,15 +1160,28 @@ impl EipClient {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// # let mut client = rust_ethernet_ip::EipClient::connect("192.168.1.100:44818").await?;
-    /// use rust_ethernet_ip::PlcValue;
+    /// ```rust,no_run
+    /// use rust_ethernet_ip::{EipClient, PortSegment, PlcValue};
     ///
-    /// client.write_tag("Counter", PlcValue::Dint(42)).await?;
-    /// client.write_tag("Message", PlcValue::String("Hello PLC".to_string())).await?;
-    /// # Ok(())
-    /// # }
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ///     // Connect with routing to processor in slot 1
+    ///     let mut client = EipClient::connect_with_path(
+    ///         "192.168.1.3:44818",
+    ///         Some(PortSegment::processor_in_slot(1))
+    ///     ).await?;
+    ///
+    ///     // Write different data types - routing is automatic
+    ///     client.write_tag("Counter", PlcValue::Dint(42)).await?;
+    ///     client.write_tag("SetPoint", PlcValue::Real(123.45)).await?;
+    ///     client.write_tag("EnableFlag", PlcValue::Bool(true)).await?;
+    ///     client.write_tag("Message", PlcValue::String("Hello PLC".to_string())).await?;
+    ///
+    ///     // Write to array element
+    ///     client.write_tag("Rust_Real[0]", PlcValue::Real(99.99)).await?;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub async fn write_tag(&mut self, tag_name: &str, value: PlcValue) -> crate::error::Result<()> {
         println!(
@@ -1352,16 +1193,11 @@ impl EipClient {
             tag_name
         );
 
-        // Use specialized AB STRING format for STRING writes (required for proper Allen-Bradley STRING handling)
-        // All data types including strings now use the standard write path
-        // The PlcValue::to_bytes() method handles the correct format for each type
-
-        // Use standard unconnected messaging for other data types
+        // Build write request (routing will be applied automatically in send_cip_request)
         let cip_request = self.build_write_request(tag_name, &value)?;
-
         let response = self.send_cip_request(&cip_request).await?;
 
-        // Check write response for errors - need to extract CIP response first
+        // Check write response for errors
         let cip_response = self.extract_cip_from_response(&response)?;
 
         if cip_response.len() < 3 {
@@ -1394,85 +1230,7 @@ impl EipClient {
         Ok(())
     }
 
-    /// Builds a write request specifically for Allen-Bradley string format
-    fn _build_ab_string_write_request(
-        &self,
-        tag_name: &str,
-        value: &PlcValue,
-    ) -> crate::error::Result<Vec<u8>> {
-        if let PlcValue::String(string_value) = value {
-            println!(
-                "🔧 [DEBUG] Building correct Allen-Bradley string write request for tag: '{}'",
-                tag_name
-            );
-
-            let mut cip_request = Vec::new();
-
-            // Service: Write Tag Service (0x4D)
-            cip_request.push(0x4D);
-
-            // Request Path Size (in words)
-            let tag_bytes = tag_name.as_bytes();
-            let path_len = if tag_bytes.len() % 2 == 0 {
-                tag_bytes.len() + 2
-            } else {
-                tag_bytes.len() + 3
-            } / 2;
-            cip_request.push(path_len as u8);
-
-            // Request Path
-            cip_request.push(0x91); // ANSI Extended Symbol
-            cip_request.push(tag_bytes.len() as u8);
-            cip_request.extend_from_slice(tag_bytes);
-
-            // Pad to word boundary if needed
-            if tag_bytes.len() % 2 != 0 {
-                cip_request.push(0x00);
-            }
-
-            // Data Type: Allen-Bradley STRING (0x02A0)
-            cip_request.extend_from_slice(&[0xA0, 0x02]);
-
-            // Element Count (always 1 for single string)
-            cip_request.extend_from_slice(&[0x01, 0x00]);
-
-            // Build the correct AB STRING structure
-            let string_bytes = string_value.as_bytes();
-            let max_len: u16 = 82; // Standard AB STRING max length
-            let current_len = string_bytes.len().min(max_len as usize) as u16;
-
-            // AB STRING structure:
-            // - Len (2 bytes) - number of characters used
-            cip_request.extend_from_slice(&current_len.to_le_bytes());
-
-            // - MaxLen (2 bytes) - maximum characters allowed (typically 82)
-            cip_request.extend_from_slice(&max_len.to_le_bytes());
-
-            // - Data[MaxLen] (82 bytes) - the character array, zero-padded
-            let mut data_array = vec![0u8; max_len as usize];
-            data_array[..current_len as usize]
-                .copy_from_slice(&string_bytes[..current_len as usize]);
-            cip_request.extend_from_slice(&data_array);
-
-            println!("🔧 [DEBUG] Built correct AB string write request ({} bytes): len={}, maxlen={}, data_len={}",
-                     cip_request.len(), current_len, max_len, string_bytes.len());
-            println!(
-                "🔧 [DEBUG] First 32 bytes: {:02X?}",
-                &cip_request[..std::cmp::min(32, cip_request.len())]
-            );
-
-            Ok(cip_request)
-        } else {
-            Err(EtherNetIpError::Protocol(
-                "Expected string value for Allen-Bradley string write".to_string(),
-            ))
-        }
-    }
-
     /// Builds a CIP Write Tag Service request
-    ///
-    /// This creates the CIP packet for writing a value to a tag.
-    /// The request includes the service code, tag path, data type, and value.
     fn build_write_request(
         &self,
         tag_name: &str,
@@ -1480,7 +1238,6 @@ impl EipClient {
     ) -> crate::error::Result<Vec<u8>> {
         println!("🔧 [DEBUG] Building write request for tag: '{}'", tag_name);
 
-        // Use Connected Explicit Messaging for consistency
         let mut cip_request = Vec::new();
 
         // Service: Write Tag Service (0x4D)
@@ -1521,102 +1278,99 @@ impl EipClient {
         Ok(cip_request)
     }
 
-    /// Builds a raw write request with pre-serialized data
-    fn build_write_request_raw(
-        &self,
-        tag_name: &str,
-        data: &[u8],
-    ) -> crate::error::Result<Vec<u8>> {
-        let mut request = Vec::new();
+    /// Builds a CIP Read Tag Service request
+    fn build_read_request(&self, tag_name: &str) -> Vec<u8> {
+        println!("🔧 [DEBUG] Building read request for tag: '{}'", tag_name);
 
-        // Write Tag Service
-        request.push(0x4D);
-        request.push(0x00);
+        let mut cip_request = Vec::new();
 
-        // Build tag path
-        let tag_path = self.build_tag_path(tag_name);
-        request.extend(tag_path);
+        // Service: Read Tag Service (0x4C)
+        cip_request.push(0x4C);
 
-        // Add raw data
-        request.extend(data);
+        // Build the path based on tag name format
+        let path = self.build_tag_path(tag_name);
 
-        Ok(request)
+        // Request Path Size (in words)
+        cip_request.push((path.len() / 2) as u8);
+
+        // Request Path
+        cip_request.extend_from_slice(&path);
+
+        // Element count (little-endian)
+        cip_request.extend_from_slice(&[0x01, 0x00]); // Read 1 element
+
+        println!(
+            "🔧 [DEBUG] Built CIP read request ({} bytes): {:02X?}",
+            cip_request.len(),
+            cip_request
+        );
+
+        cip_request
     }
 
-    /// Serializes a PlcValue into bytes for transmission
-    #[allow(dead_code)]
-    fn serialize_value(&self, value: &PlcValue) -> crate::error::Result<Vec<u8>> {
-        let mut data = Vec::new();
+    /// Builds the correct path for a tag name
+    fn build_tag_path(&self, tag_name: &str) -> Vec<u8> {
+        let mut path = Vec::new();
 
-        match value {
-            PlcValue::Bool(v) => {
-                data.extend(&0x00C1u16.to_le_bytes()); // Data type
-                data.push(if *v { 0xFF } else { 0x00 });
-            }
-            PlcValue::Sint(v) => {
-                data.extend(&0x00C2u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Int(v) => {
-                data.extend(&0x00C3u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Dint(v) => {
-                data.extend(&0x00C4u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Lint(v) => {
-                data.extend(&0x00C5u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Usint(v) => {
-                data.extend(&0x00C6u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Uint(v) => {
-                data.extend(&0x00C7u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Udint(v) => {
-                data.extend(&0x00C8u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Ulint(v) => {
-                data.extend(&0x00C9u16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Real(v) => {
-                data.extend(&0x00CAu16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::Lreal(v) => {
-                data.extend(&0x00CBu16.to_le_bytes()); // Data type
-                data.extend(&v.to_le_bytes());
-            }
-            PlcValue::String(v) => {
-                data.extend(&0x00CEu16.to_le_bytes()); // Data type - correct Allen-Bradley STRING CIP type
+        if tag_name.starts_with("Program:") {
+            // Handle program tags: Program:ProgramName.TagName
+            let parts: Vec<&str> = tag_name.splitn(2, ':').collect();
+            if parts.len() == 2 {
+                let program_and_tag = parts[1];
+                let program_parts: Vec<&str> = program_and_tag.splitn(2, '.').collect();
 
-                // Length field (4 bytes as DINT) - number of characters currently used
-                let length = v.len().min(82) as u32;
-                data.extend_from_slice(&length.to_le_bytes());
+                if program_parts.len() == 2 {
+                    let program_name = program_parts[0];
+                    let tag_name = program_parts[1];
 
-                // String data - the actual characters (no MaxLen field)
-                let string_bytes = v.as_bytes();
-                let data_len = string_bytes.len().min(82);
-                data.extend_from_slice(&string_bytes[..data_len]);
+                    // Build path: Program segment + program name + tag segment + tag name
+                    path.push(0x91); // ANSI Extended Symbol Segment
+                    path.push(program_name.len() as u8);
+                    path.extend_from_slice(program_name.as_bytes());
 
-                // Padding to make total data area exactly 82 bytes after length
-                let remaining_chars = 82 - data_len;
-                data.extend(vec![0u8; remaining_chars]);
+                    // Pad to even length if necessary
+                    if program_name.len() % 2 != 0 {
+                        path.push(0x00);
+                    }
+
+                    // Add tag segment
+                    path.push(0x91); // ANSI Extended Symbol Segment
+                    path.push(tag_name.len() as u8);
+                    path.extend_from_slice(tag_name.as_bytes());
+
+                    // Pad to even length if necessary
+                    if tag_name.len() % 2 != 0 {
+                        path.push(0x00);
+                    }
+                } else {
+                    // Fallback to simple tag name
+                    path.extend_from_slice(&self.build_simple_tag_path(tag_name));
+                }
+            } else {
+                // Fallback to simple tag name
+                path.extend_from_slice(&self.build_simple_tag_path(tag_name));
             }
-            PlcValue::Udt(_) => {
-                // UDT serialization is handled by the UdtManager
-                // For now, just add placeholder data
-                data.extend(&0x00A0u16.to_le_bytes()); // UDT type code
-            }
+        } else {
+            // Handle simple tag names
+            path.extend_from_slice(&self.build_simple_tag_path(tag_name));
         }
 
-        Ok(data)
+        path
+    }
+
+    /// Builds a simple tag path (no program prefix)
+    fn build_simple_tag_path(&self, tag_name: &str) -> Vec<u8> {
+        let mut path = Vec::new();
+        path.push(0x91); // ANSI Extended Symbol Segment
+        path.push(tag_name.len() as u8);
+        path.extend_from_slice(tag_name.as_bytes());
+
+        // Pad to even length if necessary
+        if tag_name.len() % 2 != 0 {
+            path.push(0x00);
+        }
+
+        path
     }
 
     pub fn build_list_tags_request(&self) -> Vec<u8> {
@@ -1660,14 +1414,6 @@ impl EipClient {
     }
 
     /// Gets a human-readable error message for a CIP status code
-    ///
-    /// # Arguments
-    ///
-    /// * `status` - The CIP status code to look up
-    ///
-    /// # Returns
-    ///
-    /// A string describing the error
     fn get_cip_error_message(&self, status: u8) -> String {
         match status {
             0x00 => "Success".to_string(),
@@ -1776,55 +1522,38 @@ impl EipClient {
         self.extract_cip_from_response(&response)
     }
 
-    /// Writes raw data to a tag
-    #[allow(dead_code)]
-    async fn write_tag_raw(&mut self, tag_name: &str, data: &[u8]) -> crate::error::Result<()> {
-        let request = self.build_write_request_raw(tag_name, data)?;
-        let response = self.send_cip_request(&request).await?;
-
-        // Check write response for errors
-        let cip_response = self.extract_cip_from_response(&response)?;
-
-        if cip_response.len() < 3 {
-            return Err(EtherNetIpError::Protocol(
-                "Write response too short".to_string(),
-            ));
-        }
-
-        let service_reply = cip_response[0]; // Should be 0xCD (0x4D + 0x80) for Write Tag reply
-        let general_status = cip_response[2]; // CIP status code
-
-        println!(
-            "🔧 [DEBUG] Write response - Service: 0x{:02X}, Status: 0x{:02X}",
-            service_reply, general_status
-        );
-
-        if general_status != 0x00 {
-            let error_msg = self.get_cip_error_message(general_status);
-            println!(
-                "❌ [WRITE] CIP Error: {} (0x{:02X})",
-                error_msg, general_status
-            );
-            return Err(EtherNetIpError::Protocol(format!(
-                "CIP Error 0x{:02X}: {}",
-                general_status, error_msg
-            )));
-        }
-
-        println!("✅ Write completed successfully");
-        Ok(())
-    }
-
-    /// Sends a CIP request wrapped in EtherNet/IP SendRRData command
+    /// Sends a CIP request with automatic port routing support
+    ///
+    /// This is the core method that handles both direct and routed communication.
+    /// When a connection path is configured, the CIP request is automatically
+    /// wrapped in an Unconnected Send service to route through the backplane.
+    ///
+    /// # Arguments
+    ///
+    /// * `cip_request` - The CIP request to send
+    ///
+    /// # Returns
+    ///
+    /// The response data from the PLC
     pub async fn send_cip_request(&self, cip_request: &[u8]) -> Result<Vec<u8>> {
+        // Apply port routing if configured
+        let final_cip_request = if let Some(ref connection_path) = self.connection_path {
+            println!("🛤️ [PORT ROUTING] Wrapping request with Unconnected Send routing: {}", 
+                     connection_path.description());
+            self.wrap_with_unconnected_send(cip_request, connection_path)?
+        } else {
+            println!("🔧 [DEBUG] Sending direct CIP request ({} bytes)", cip_request.len());
+            cip_request.to_vec()
+        };
+
         println!(
-            "🔧 [DEBUG] Sending CIP request ({} bytes): {:02X?}",
-            cip_request.len(),
-            cip_request
+            "🔧 [DEBUG] Final request ({} bytes): {:02X?}",
+            final_cip_request.len(),
+            &final_cip_request[..std::cmp::min(32, final_cip_request.len())]
         );
 
         // Calculate total packet size
-        let cip_data_size = cip_request.len();
+        let cip_data_size = final_cip_request.len();
         let total_data_len = 4 + 2 + 2 + 8 + cip_data_size; // Interface + Timeout + Count + Items + CIP
 
         let mut packet = Vec::new();
@@ -1850,8 +1579,8 @@ impl EipClient {
         packet.extend_from_slice(&[0xB2, 0x00]); // Type: Unconnected Data
         packet.extend_from_slice(&(cip_data_size as u16).to_le_bytes()); // Length
 
-        // Add CIP request data
-        packet.extend_from_slice(cip_request);
+        // Add final CIP request data (either direct or routed)
+        packet.extend_from_slice(&final_cip_request);
 
         println!(
             "🔧 [DEBUG] Built packet ({} bytes): {:02X?}",
@@ -1914,6 +1643,66 @@ impl EipClient {
         Ok(response_data)
     }
 
+    /// Wraps a CIP request in an Unconnected Send service for port routing
+    ///
+    /// This method implements the CIP Unconnected Send service (0x52) which is used
+    /// to route messages through Allen-Bradley backplanes to reach processors in
+    /// different slots than the network card.
+    ///
+    /// # Arguments
+    ///
+    /// * `cip_request` - The original CIP request to wrap
+    /// * `connection_path` - The port routing configuration
+    ///
+    /// # Returns
+    ///
+    /// A new CIP request wrapped with Unconnected Send routing
+    fn wrap_with_unconnected_send(&self, cip_request: &[u8], connection_path: &PortSegment) -> Result<Vec<u8>> {
+        let mut wrapped_request = Vec::new();
+        
+        // Unconnected Send Service (0x52)
+        wrapped_request.push(0x52);
+        
+        // Request path to Message Router (Class 0x02, Instance 0x01)
+        wrapped_request.push(0x02); // Path size in words
+        wrapped_request.push(0x20); // Logical Class segment
+        wrapped_request.push(0x02); // Message Router class
+        wrapped_request.push(0x24); // Logical Instance segment  
+        wrapped_request.push(0x01); // Message Router instance
+        
+        // Priority/Tick time (1 byte) - 0x07 = high priority, 7 tick time
+        wrapped_request.push(0x07);
+        
+        // Timeout ticks (1 byte) - number of ticks before timeout
+        wrapped_request.push(0x0A); // 10 ticks
+        
+        // Message request size (2 bytes, little-endian)
+        wrapped_request.extend_from_slice(&(cip_request.len() as u16).to_le_bytes());
+        
+        // Embedded CIP request (the original request)
+        wrapped_request.extend_from_slice(cip_request);
+        
+        // Pad to even length if necessary (CIP requirement)
+        if wrapped_request.len() % 2 != 0 {
+            wrapped_request.push(0x00);
+        }
+        
+        // Connection path size (1 byte) - size in words
+        let connection_path_bytes = connection_path.encode();
+        wrapped_request.push((connection_path_bytes.len() / 2) as u8);
+        
+        // Connection path (port segment)
+        wrapped_request.extend_from_slice(&connection_path_bytes);
+        
+        println!("🛤️ [PORT ROUTING] Created Unconnected Send wrapper:");
+        println!("  - Original request: {} bytes", cip_request.len());
+        println!("  - Port routing: {}", connection_path.description());
+        println!("  - Connection path: {:02X?}", connection_path_bytes);
+        println!("  - Final wrapped request: {} bytes", wrapped_request.len());
+        
+        Ok(wrapped_request)
+    }
+
     /// Extracts CIP data from EtherNet/IP response packet
     fn extract_cip_from_response(&self, response: &[u8]) -> crate::error::Result<Vec<u8>> {
         println!(
@@ -1963,6 +1752,16 @@ impl EipClient {
                 }
 
                 let cip_data = response[pos..pos + item_length].to_vec();
+                
+                // Check if this is an Unconnected Send response that needs unwrapping
+                if self.connection_path.is_some() && cip_data.len() >= 4 {
+                    // Check if this is an Unconnected Send reply (service 0xD2 = 0x52 + 0x80)
+                    if cip_data[0] == 0xD2 {
+                        println!("🛤️ [PORT ROUTING] Unwrapping Unconnected Send response");
+                        return self.unwrap_unconnected_send_response(&cip_data);
+                    }
+                }
+                
                 println!(
                     "🔧 [DEBUG] Found Unconnected Data Item, extracted CIP data ({} bytes)",
                     cip_data.len()
@@ -1981,6 +1780,63 @@ impl EipClient {
         Err(EtherNetIpError::Protocol(
             "No Unconnected Data Item (0x00B2) found in response".to_string(),
         ))
+    }
+
+    /// Unwraps an Unconnected Send response to extract the embedded CIP response
+    ///
+    /// When using port routing, responses come wrapped in Unconnected Send reply
+    /// format. This method extracts the actual CIP response from within the wrapper.
+    ///
+    /// # Arguments
+    ///
+    /// * `wrapped_response` - The Unconnected Send response data
+    ///
+    /// # Returns
+    ///
+    /// The embedded CIP response data
+    fn unwrap_unconnected_send_response(&self, wrapped_response: &[u8]) -> Result<Vec<u8>> {
+        if wrapped_response.len() < 4 {
+            return Err(EtherNetIpError::Protocol(
+                "Unconnected Send response too short".to_string(),
+            ));
+        }
+
+        // Unconnected Send Response format:
+        // [0] = Service code (0xD2 = 0x52 + 0x80)
+        // [1] = Reserved (0x00)
+        // [2] = General status (0x00 for success)
+        // [3] = Additional status size (usually 0x00)
+        // [4..] = Embedded response data
+
+        let service_code = wrapped_response[0];
+        let general_status = wrapped_response[2];
+        
+        println!("🛤️ [PORT ROUTING] Unconnected Send response: service=0x{:02X}, status=0x{:02X}",
+                 service_code, general_status);
+
+        // Check if the Unconnected Send itself failed
+        if general_status != 0x00 {
+            let error_msg = self.get_cip_error_message(general_status);
+            return Err(EtherNetIpError::Protocol(format!(
+                "Unconnected Send failed with status 0x{:02X}: {}",
+                general_status, error_msg
+            )));
+        }
+
+        // Extract the embedded response (skip the 4-byte Unconnected Send header)
+        if wrapped_response.len() <= 4 {
+            return Err(EtherNetIpError::Protocol(
+                "No embedded response data in Unconnected Send reply".to_string(),
+            ));
+        }
+
+        let embedded_response = wrapped_response[4..].to_vec();
+        
+        println!("🛤️ [PORT ROUTING] Extracted embedded response ({} bytes): {:02X?}",
+                 embedded_response.len(),
+                 &embedded_response[..std::cmp::min(16, embedded_response.len())]);
+
+        Ok(embedded_response)
     }
 
     /// Parses CIP response and converts to PlcValue
@@ -2195,110 +2051,15 @@ impl EipClient {
         Ok(())
     }
 
-    /// Builds a CIP Read Tag Service request
-    fn build_read_request(&self, tag_name: &str) -> Vec<u8> {
-        println!("🔧 [DEBUG] Building read request for tag: '{}'", tag_name);
-
-        let mut cip_request = Vec::new();
-
-        // Service: Read Tag Service (0x4C)
-        cip_request.push(0x4C);
-
-        // Build the path based on tag name format
-        let path = self.build_tag_path(tag_name);
-
-        // Request Path Size (in words)
-        cip_request.push((path.len() / 2) as u8);
-
-        // Request Path
-        cip_request.extend_from_slice(&path);
-
-        // Element count (little-endian)
-        cip_request.extend_from_slice(&[0x01, 0x00]); // Read 1 element
-
-        println!(
-            "🔧 [DEBUG] Built CIP read request ({} bytes): {:02X?}",
-            cip_request.len(),
-            cip_request
-        );
-
-        cip_request
-    }
-
-    /// Builds the correct path for a tag name
-    fn build_tag_path(&self, tag_name: &str) -> Vec<u8> {
-        let mut path = Vec::new();
-
-        if tag_name.starts_with("Program:") {
-            // Handle program tags: Program:ProgramName.TagName
-            let parts: Vec<&str> = tag_name.splitn(2, ':').collect();
-            if parts.len() == 2 {
-                let program_and_tag = parts[1];
-                let program_parts: Vec<&str> = program_and_tag.splitn(2, '.').collect();
-
-                if program_parts.len() == 2 {
-                    let program_name = program_parts[0];
-                    let tag_name = program_parts[1];
-
-                    // Build path: Program segment + program name + tag segment + tag name
-                    path.push(0x91); // ANSI Extended Symbol Segment
-                    path.push(program_name.len() as u8);
-                    path.extend_from_slice(program_name.as_bytes());
-
-                    // Pad to even length if necessary
-                    if program_name.len() % 2 != 0 {
-                        path.push(0x00);
-                    }
-
-                    // Add tag segment
-                    path.push(0x91); // ANSI Extended Symbol Segment
-                    path.push(tag_name.len() as u8);
-                    path.extend_from_slice(tag_name.as_bytes());
-
-                    // Pad to even length if necessary
-                    if tag_name.len() % 2 != 0 {
-                        path.push(0x00);
-                    }
-                } else {
-                    // Fallback to simple tag name
-                    path.extend_from_slice(&self.build_simple_tag_path(tag_name));
-                }
-            } else {
-                // Fallback to simple tag name
-                path.extend_from_slice(&self.build_simple_tag_path(tag_name));
-            }
-        } else {
-            // Handle simple tag names
-            path.extend_from_slice(&self.build_simple_tag_path(tag_name));
-        }
-
-        path
-    }
-
-    /// Builds a simple tag path (no program prefix)
-    fn build_simple_tag_path(&self, tag_name: &str) -> Vec<u8> {
-        let mut path = Vec::new();
-        path.push(0x91); // ANSI Extended Symbol Segment
-        path.push(tag_name.len() as u8);
-        path.extend_from_slice(tag_name.as_bytes());
-
-        // Pad to even length if necessary
-        if tag_name.len() % 2 != 0 {
-            path.push(0x00);
-        }
-
-        path
-    }
-
     // =========================================================================
     // BATCH OPERATIONS IMPLEMENTATION
     // =========================================================================
 
-    /// Executes a batch of read and write operations
+    /// Executes a batch of read and write operations with automatic port routing
     ///
-    /// This is the main entry point for batch operations. It takes a slice of
-    /// `BatchOperation` items and executes them efficiently by grouping them
-    /// into optimal CIP packets based on the current `BatchConfig`.
+    /// All operations in the batch will use the same connection path if port routing
+    /// is configured. This provides high performance for multiple tag operations
+    /// while maintaining proper routing.
     ///
     /// # Arguments
     ///
@@ -2306,33 +2067,31 @@ impl EipClient {
     ///
     /// # Returns
     ///
-    /// A vector of `BatchResult` items, one for each input operation.
-    /// Results are returned in the same order as the input operations.
-    ///
-    /// # Performance
-    ///
-    /// - **Throughput**: 5,000-15,000+ operations/second (vs 1,500 individual)
-    /// - **Latency**: 5-20ms per batch (vs 1-3ms per individual operation)
-    /// - **Network efficiency**: 1-5 packets vs N packets for N operations
+    /// A vector of `BatchResult` items, one for each input operation
     ///
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use rust_ethernet_ip::{EipClient, BatchOperation, PlcValue};
+    /// use rust_ethernet_ip::{EipClient, PortSegment, BatchOperation, PlcValue};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
+    ///     // Connect with routing to processor in slot 1
+    ///     let mut client = EipClient::connect_with_path(
+    ///         "192.168.1.3:44818",
+    ///         Some(PortSegment::processor_in_slot(1))
+    ///     ).await?;
     ///
     ///     let operations = vec![
-    ///         BatchOperation::Read { tag_name: "Motor1_Speed".to_string() },
-    ///         BatchOperation::Read { tag_name: "Motor2_Speed".to_string() },
+    ///         BatchOperation::Read { tag_name: "Rust_Real[0]".to_string() },
+    ///         BatchOperation::Read { tag_name: "Rust_Real[1]".to_string() },
     ///         BatchOperation::Write {
     ///             tag_name: "SetPoint".to_string(),
     ///             value: PlcValue::Dint(1500)
     ///         },
     ///     ];
     ///
+    ///     // All operations automatically use slot 1 routing
     ///     let results = client.execute_batch(&operations).await?;
     ///
     ///     for result in results {
@@ -2359,6 +2118,11 @@ impl EipClient {
             "🚀 [BATCH] Starting batch execution with {} operations",
             operations.len()
         );
+
+        // Display routing info for batch operations
+        if let Some(ref path) = self.connection_path {
+            println!("🛤️ [BATCH] All operations will use routing: {}", path.description());
+        }
 
         // Group operations based on configuration
         let operation_groups = if self.batch_config.optimize_packet_packing {
@@ -2409,41 +2173,7 @@ impl EipClient {
         Ok(all_results)
     }
 
-    /// Reads multiple tags in a single batch operation
-    ///
-    /// This is a convenience method for read-only batch operations.
-    /// It's optimized for reading many tags at once.
-    ///
-    /// # Arguments
-    ///
-    /// * `tag_names` - A slice of tag names to read
-    ///
-    /// # Returns
-    ///
-    /// A vector of tuples containing (tag_name, result) pairs
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use rust_ethernet_ip::EipClient;
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
-    ///
-    ///     let tags = ["Motor1_Speed", "Motor2_Speed", "Temperature", "Pressure"];
-    ///     let results = client.read_tags_batch(&tags).await?;
-    ///
-    ///     for (tag_name, result) in results {
-    ///         match result {
-    ///             Ok(value) => println!("{}: {:?}", tag_name, value),
-    ///             Err(e) => println!("{}: Error - {}", tag_name, e),
-    ///         }
-    ///     }
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
+    /// Reads multiple tags in a single batch operation with automatic port routing
     pub async fn read_tags_batch(
         &mut self,
         tag_names: &[&str],
@@ -2478,46 +2208,7 @@ impl EipClient {
             .collect())
     }
 
-    /// Writes multiple tag values in a single batch operation
-    ///
-    /// This is a convenience method for write-only batch operations.
-    /// It's optimized for writing many values at once.
-    ///
-    /// # Arguments
-    ///
-    /// * `tag_values` - A slice of (tag_name, value) tuples to write
-    ///
-    /// # Returns
-    ///
-    /// A vector of tuples containing (tag_name, result) pairs
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use rust_ethernet_ip::{EipClient, PlcValue};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
-    ///
-    ///     let writes = vec![
-    ///         ("SetPoint1", PlcValue::Bool(true)),
-    ///         ("SetPoint2", PlcValue::Dint(2000)),
-    ///         ("EnableFlag", PlcValue::Bool(true)),
-    ///     ];
-    ///
-    ///     let results = client.write_tags_batch(&writes).await?;
-    ///
-    ///     for (tag_name, result) in results {
-    ///         match result {
-    ///             Ok(_) => println!("{}: Write successful", tag_name),
-    ///             Err(e) => println!("{}: Write failed - {}", tag_name, e),
-    ///         }
-    ///     }
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
+    /// Writes multiple tag values in a single batch operation with automatic port routing
     pub async fn write_tags_batch(
         &mut self,
         tag_values: &[(&str, PlcValue)],
@@ -2554,36 +2245,6 @@ impl EipClient {
     }
 
     /// Configures batch operation settings
-    ///
-    /// This method allows fine-tuning of batch operation behavior,
-    /// including performance optimizations and error handling.
-    ///
-    /// # Arguments
-    ///
-    /// * `config` - The new batch configuration to use
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use rust_ethernet_ip::{EipClient, BatchConfig};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ///     let mut client = EipClient::connect("192.168.1.100:44818").await?;
-    ///
-    ///     let config = BatchConfig {
-    ///         max_operations_per_packet: 50,
-    ///         max_packet_size: 1500,
-    ///         packet_timeout_ms: 5000,
-    ///         continue_on_error: false,
-    ///         optimize_packet_packing: true,
-    ///     };
-    ///
-    ///     client.configure_batch_operations(config);
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
     pub fn configure_batch_operations(&mut self, config: BatchConfig) {
         self.batch_config = config;
         println!(
@@ -2652,7 +2313,7 @@ impl EipClient {
         // Build Multiple Service Packet request
         let cip_request = self.build_multiple_service_packet(operations)?;
 
-        // Send request and get response
+        // Send request and get response (routing is handled automatically in send_cip_request)
         let response = self.send_cip_request(&cip_request).await?;
 
         // Parse response and create results
@@ -2782,13 +2443,7 @@ impl EipClient {
             ));
         }
 
-        // Parse Multiple Service Response header from CIP data:
-        // [0] = Service Code (0x8A)
-        // [1] = Reserved (0x00)
-        // [2] = General Status (0x00 for success)
-        // [3] = Additional Status Size (0x00)
-        // [4-5] = Number of replies (little endian)
-
+        // Parse Multiple Service Response header from CIP data
         let service_code = cip_data[0];
         let general_status = cip_data[2];
         let num_replies = u16::from_le_bytes([cip_data[4], cip_data[5]]) as usize;
@@ -2813,7 +2468,7 @@ impl EipClient {
             )));
         }
 
-        // Read reply offsets (each is 2 bytes, little endian)
+        // Read reply offsets
         let mut reply_offsets = Vec::new();
         let mut offset = 6; // Skip header
 
@@ -2831,14 +2486,8 @@ impl EipClient {
 
         println!("🔧 [DEBUG] Reply offsets: {:?}", reply_offsets);
 
-        // The reply data starts after all the offsets
-        let reply_base_offset = 6 + (num_replies * 2);
-
-        println!("🔧 [DEBUG] Reply base offset: {}", reply_base_offset);
-
         // Parse each reply
         for (i, &reply_offset) in reply_offsets.iter().enumerate() {
-            // Reply offset is relative to position 4 (after service code, reserved, status, additional status size)
             let reply_start = 4 + reply_offset;
 
             if reply_start >= cip_data.len() {
@@ -2848,12 +2497,9 @@ impl EipClient {
                 continue;
             }
 
-            // Calculate reply end position
             let reply_end = if i + 1 < reply_offsets.len() {
-                // Not the last reply - use next reply's offset as boundary
                 4 + reply_offsets[i + 1]
             } else {
-                // Last reply - goes to end of CIP data
                 cip_data.len()
             };
 
@@ -2867,14 +2513,8 @@ impl EipClient {
             let reply_data = &cip_data[reply_start..reply_end];
 
             println!(
-                "🔧 [DEBUG] Reply {} at offset {}: start={}, end={}, len={}",
-                i,
-                reply_offset,
-                reply_start,
-                reply_end,
-                reply_data.len()
+                "🔧 [DEBUG] Reply {} data: {:02X?}", i, reply_data
             );
-            println!("🔧 [DEBUG] Reply {} data: {:02X?}", i, reply_data);
 
             let result = self.parse_individual_reply(reply_data, &operations[i]);
             results.push(result);
@@ -2900,13 +2540,6 @@ impl EipClient {
             reply_data.len(),
             reply_data
         );
-
-        // Each individual reply in Multiple Service Response has the same format as standalone CIP response:
-        // [0] = Service Code (0xCC for read response, 0xCD for write response)
-        // [1] = Reserved (0x00)
-        // [2] = General Status (0x00 for success)
-        // [3] = Additional Status Size (0x00)
-        // [4..] = Response data (for reads) or empty (for writes)
 
         let service_code = reply_data[0];
         let general_status = reply_data[2];
@@ -2937,8 +2570,6 @@ impl EipClient {
                     ));
                 }
 
-                // Parse the data directly (skip the 4-byte header)
-                // Data format: [type_low, type_high, value_bytes...]
                 let data = &reply_data[4..];
                 println!(
                     "🔧 [DEBUG] Parsing data ({} bytes): {:02X?}",
@@ -3008,78 +2639,6 @@ impl EipClient {
                         println!("🔧 [DEBUG] Parsed DINT: {}", value);
                         Ok(Some(PlcValue::Dint(value)))
                     }
-                    0x00C5 => {
-                        // LINT
-                        if value_data.len() < 8 {
-                            return Err(BatchError::SerializationError(
-                                "Missing LINT value".to_string(),
-                            ));
-                        }
-                        let value = i64::from_le_bytes([
-                            value_data[0],
-                            value_data[1],
-                            value_data[2],
-                            value_data[3],
-                            value_data[4],
-                            value_data[5],
-                            value_data[6],
-                            value_data[7],
-                        ]);
-                        Ok(Some(PlcValue::Lint(value)))
-                    }
-                    0x00C6 => {
-                        // USINT
-                        if value_data.is_empty() {
-                            return Err(BatchError::SerializationError(
-                                "Missing USINT value".to_string(),
-                            ));
-                        }
-                        Ok(Some(PlcValue::Usint(value_data[0])))
-                    }
-                    0x00C7 => {
-                        // UINT
-                        if value_data.len() < 2 {
-                            return Err(BatchError::SerializationError(
-                                "Missing UINT value".to_string(),
-                            ));
-                        }
-                        let value = u16::from_le_bytes([value_data[0], value_data[1]]);
-                        Ok(Some(PlcValue::Uint(value)))
-                    }
-                    0x00C8 => {
-                        // UDINT
-                        if value_data.len() < 4 {
-                            return Err(BatchError::SerializationError(
-                                "Missing UDINT value".to_string(),
-                            ));
-                        }
-                        let value = u32::from_le_bytes([
-                            value_data[0],
-                            value_data[1],
-                            value_data[2],
-                            value_data[3],
-                        ]);
-                        Ok(Some(PlcValue::Udint(value)))
-                    }
-                    0x00C9 => {
-                        // ULINT
-                        if value_data.len() < 8 {
-                            return Err(BatchError::SerializationError(
-                                "Missing ULINT value".to_string(),
-                            ));
-                        }
-                        let value = u64::from_le_bytes([
-                            value_data[0],
-                            value_data[1],
-                            value_data[2],
-                            value_data[3],
-                            value_data[4],
-                            value_data[5],
-                            value_data[6],
-                            value_data[7],
-                        ]);
-                        Ok(Some(PlcValue::Ulint(value)))
-                    }
                     0x00CA => {
                         // REAL
                         if value_data.len() < 4 {
@@ -3092,65 +2651,41 @@ impl EipClient {
                         println!("🔧 [DEBUG] Parsed REAL: {}", value);
                         Ok(Some(PlcValue::Real(value)))
                     }
-                    0x00CB => {
-                        // LREAL
-                        if value_data.len() < 8 {
-                            return Err(BatchError::SerializationError(
-                                "Missing LREAL value".to_string(),
-                            ));
-                        }
-                        let bytes = [
-                            value_data[0],
-                            value_data[1],
-                            value_data[2],
-                            value_data[3],
-                            value_data[4],
-                            value_data[5],
-                            value_data[6],
-                            value_data[7],
-                        ];
-                        let value = f64::from_le_bytes(bytes);
-                        Ok(Some(PlcValue::Lreal(value)))
-                    }
-                    0x00DA => {
-                        // STRING
+                    0x00DA | 0x02A0 => {
+                        // STRING types
                         if value_data.is_empty() {
                             return Ok(Some(PlcValue::String(String::new())));
                         }
-                        let length = value_data[0] as usize;
-                        if value_data.len() < 1 + length {
-                            return Err(BatchError::SerializationError(
-                                "Insufficient data for STRING value".to_string(),
-                            ));
-                        }
-                        let string_data = &value_data[1..1 + length];
-                        let value = String::from_utf8_lossy(string_data).to_string();
-                        println!("🔧 [DEBUG] Parsed STRING: '{}'", value);
-                        Ok(Some(PlcValue::String(value)))
-                    }
-                    0x02A0 => {
-                        // Alternative STRING type (Allen-Bradley specific) for batch operations
-                        if value_data.len() < 7 {
-                            return Err(BatchError::SerializationError(
-                                "Insufficient data for alternative STRING value".to_string(),
-                            ));
-                        }
-
-                        // For this format, the string data starts directly at position 6
-                        // We need to find the null terminator or use the full remaining length
-                        let string_start = 6;
-                        let string_data = &value_data[string_start..];
-
-                        // Find null terminator or use full length
-                        let string_end = string_data
-                            .iter()
-                            .position(|&b| b == 0)
-                            .unwrap_or(string_data.len());
-                        let string_bytes = &string_data[..string_end];
-
-                        let value = String::from_utf8_lossy(string_bytes).to_string();
-                        println!("🔧 [DEBUG] Parsed alternative STRING (0x02A0): '{}'", value);
-                        Ok(Some(PlcValue::String(value)))
+                        
+                        let string_value = if data_type == 0x00DA {
+                            // Standard STRING format
+                            let length = value_data[0] as usize;
+                            if value_data.len() < 1 + length {
+                                return Err(BatchError::SerializationError(
+                                    "Insufficient data for STRING value".to_string(),
+                                ));
+                            }
+                            let string_data = &value_data[1..1 + length];
+                            String::from_utf8_lossy(string_data).to_string()
+                        } else {
+                            // Allen-Bradley specific STRING format
+                            if value_data.len() < 7 {
+                                return Err(BatchError::SerializationError(
+                                    "Insufficient data for AB STRING value".to_string(),
+                                ));
+                            }
+                            let string_start = 6;
+                            let string_data = &value_data[string_start..];
+                            let string_end = string_data
+                                .iter()
+                                .position(|&b| b == 0)
+                                .unwrap_or(string_data.len());
+                            let string_bytes = &string_data[..string_end];
+                            String::from_utf8_lossy(string_bytes).to_string()
+                        };
+                        
+                        println!("🔧 [DEBUG] Parsed STRING: '{}'", string_value);
+                        Ok(Some(PlcValue::String(string_value)))
                     }
                     _ => Err(BatchError::SerializationError(format!(
                         "Unsupported data type: 0x{:04X}",
@@ -3161,726 +2696,149 @@ impl EipClient {
         }
     }
 
-    /// Writes a string value using Allen-Bradley UDT component access
-    /// This writes to TestString.LEN and TestString.DATA separately
-    pub async fn write_ab_string_components(
-        &mut self,
-        tag_name: &str,
-        value: &str,
-    ) -> crate::error::Result<()> {
-        println!(
-            "🔧 [AB STRING] Writing string '{}' to tag '{}' using component access",
-            value, tag_name
-        );
+    /// Subscribes to a tag for real-time updates
+    pub async fn subscribe_to_tag(
+        &self,
+        tag_path: &str,
+        options: SubscriptionOptions,
+    ) -> Result<()> {
+        let mut subscriptions = self.subscriptions.lock().await;
+        let subscription = TagSubscription::new(tag_path.to_string(), options);
+        subscriptions.push(subscription);
+        drop(subscriptions);
 
-        let string_bytes = value.as_bytes();
-        let string_len = string_bytes.len() as i32;
-
-        // Step 1: Write the length to TestString.LEN
-        let len_tag = format!("{}.LEN", tag_name);
-        println!("   📝 Step 1: Writing length {} to {}", string_len, len_tag);
-
-        match self.write_tag(&len_tag, PlcValue::Dint(string_len)).await {
-            Ok(_) => println!("   ✅ Length written successfully"),
-            Err(e) => {
-                println!("   ❌ Length write failed: {}", e);
-                return Err(e);
-            }
-        }
-
-        // Step 2: Write the string data to TestString.DATA using array access
-        println!("   📝 Step 2: Writing string data to {}.DATA", tag_name);
-
-        // We need to write each character individually to the DATA array
-        for (i, &byte) in string_bytes.iter().enumerate() {
-            let data_element = format!("{}.DATA[{}]", tag_name, i);
-            match self
-                .write_tag(&data_element, PlcValue::Sint(byte as i8))
-                .await
-            {
-                Ok(_) => print!("."),
-                Err(e) => {
-                    println!(
-                        "\n   ❌ Failed to write byte {} to position {}: {}",
-                        byte, i, e
-                    );
-                    return Err(e);
-                }
-            }
-        }
-
-        // Step 3: Clear remaining bytes (null terminate)
-        if string_bytes.len() < 82 {
-            let null_element = format!("{}.DATA[{}]", tag_name, string_bytes.len());
-            match self.write_tag(&null_element, PlcValue::Sint(0)).await {
-                Ok(_) => println!("\n   ✅ String null-terminated successfully"),
-                Err(e) => println!("\n   ⚠️ Could not null-terminate: {}", e),
-            }
-        }
-
-        println!("   🎉 AB STRING component write completed!");
-        Ok(())
-    }
-
-    /// Writes a string using a single UDT write with proper AB STRING format
-    pub async fn write_ab_string_udt(
-        &mut self,
-        tag_name: &str,
-        value: &str,
-    ) -> crate::error::Result<()> {
-        println!(
-            "🔧 [AB STRING UDT] Writing string '{}' to tag '{}' as UDT",
-            value, tag_name
-        );
-
-        let string_bytes = value.as_bytes();
-        if string_bytes.len() > 82 {
-            return Err(EtherNetIpError::Protocol(
-                "String too long for Allen-Bradley STRING (max 82 chars)".to_string(),
-            ));
-        }
-
-        // Build a CIP request that writes the complete AB STRING structure
-        let mut cip_request = Vec::new();
-
-        // Service: Write Tag Service (0x4D)
-        cip_request.push(0x4D);
-
-        // Request Path
-        let tag_path = self.build_tag_path(tag_name);
-        cip_request.push((tag_path.len() / 2) as u8); // Path size in words
-        cip_request.extend_from_slice(&tag_path);
-
-        // Data Type: Allen-Bradley STRING (0x02A0) - but write as UDT components
-        cip_request.extend_from_slice(&[0xA0, 0x00]); // UDT type
-        cip_request.extend_from_slice(&[0x01, 0x00]); // Element count
-
-        // AB STRING UDT structure:
-        // - DINT .LEN (4 bytes)
-        // - SINT .DATA[82] (82 bytes)
-
-        // Write .LEN field (current string length)
-        let len = string_bytes.len() as u32;
-        cip_request.extend_from_slice(&len.to_le_bytes());
-
-        // Write .DATA field (82 bytes total)
-        cip_request.extend_from_slice(string_bytes); // Actual string data
-
-        // Pad with zeros to reach 82 bytes
-        let padding_needed = 82 - string_bytes.len();
-        cip_request.extend_from_slice(&vec![0u8; padding_needed]);
-
-        println!(
-            "   📦 Built UDT write request: {} bytes total",
-            cip_request.len()
-        );
-
-        let response = self.send_cip_request(&cip_request).await?;
-
-        if response.len() >= 3 {
-            let general_status = response[2];
-            if general_status == 0x00 {
-                println!("   ✅ AB STRING UDT write successful!");
-                Ok(())
-            } else {
-                let error_msg = self.get_cip_error_message(general_status);
-                Err(EtherNetIpError::Protocol(format!(
-                    "AB STRING UDT write failed - CIP Error 0x{:02X}: {}",
-                    general_status, error_msg
-                )))
-            }
-        } else {
-            Err(EtherNetIpError::Protocol(
-                "Invalid AB STRING UDT write response".to_string(),
-            ))
-        }
-    }
-
-    /// Establishes a Class 3 connected session for STRING operations
-    ///
-    /// Connected sessions are required for certain operations like STRING writes
-    /// in Allen-Bradley PLCs. This implements the Forward Open CIP service.
-    /// Will try multiple connection parameter configurations until one succeeds.
-    async fn establish_connected_session(
-        &mut self,
-        session_name: &str,
-    ) -> crate::error::Result<ConnectedSession> {
-        println!(
-            "🔗 [CONNECTED] Establishing connected session: '{}'",
-            session_name
-        );
-        println!("🔗 [CONNECTED] Will try multiple parameter configurations...");
-
-        // Generate unique connection parameters
-        *self.connection_sequence.lock().await += 1;
-        let connection_serial = (*self.connection_sequence.lock().await & 0xFFFF) as u16;
-
-        // Try different configurations until one works
-        for config_id in 0..=5 {
-            println!(
-                "\n🔧 [ATTEMPT {}] Trying configuration {}:",
-                config_id + 1,
-                config_id
-            );
-
-            let mut session = if config_id == 0 {
-                ConnectedSession::new(connection_serial)
-            } else {
-                ConnectedSession::with_config(connection_serial, config_id)
-            };
-
-            // Generate unique connection IDs for this attempt
-            session.o_to_t_connection_id =
-                0x20000000 + *self.connection_sequence.lock().await + (config_id as u32 * 0x1000);
-            session.t_to_o_connection_id =
-                0x30000000 + *self.connection_sequence.lock().await + (config_id as u32 * 0x1000);
-
-            // Build Forward Open request with this configuration
-            let forward_open_request = self.build_forward_open_request(&session)?;
-
-            println!(
-                "🔗 [ATTEMPT {}] Sending Forward Open request ({} bytes)",
-                config_id + 1,
-                forward_open_request.len()
-            );
-
-            // Send Forward Open request
-            match self.send_cip_request(&forward_open_request).await {
-                Ok(response) => {
-                    // Try to parse the response - DON'T clone, modify the session directly!
-                    match self.parse_forward_open_response(&mut session, &response) {
-                        Ok(()) => {
-                            // Success! Store the session and return
-                            println!("✅ [SUCCESS] Configuration {} worked!", config_id);
-                            println!("   Connection ID: 0x{:08X}", session.connection_id);
-                            println!("   O->T ID: 0x{:08X}", session.o_to_t_connection_id);
-                            println!("   T->O ID: 0x{:08X}", session.t_to_o_connection_id);
-                            println!(
-                                "   Using Connection ID: 0x{:08X} for messaging",
-                                session.connection_id
-                            );
-
-                            session.is_active = true;
-                            let mut sessions = self.connected_sessions.lock().await;
-                            sessions.insert(session_name.to_string(), session.clone());
-                            return Ok(session);
-                        }
-                        Err(e) => {
-                            println!(
-                                "❌ [ATTEMPT {}] Configuration {} failed: {}",
-                                config_id + 1,
-                                config_id,
-                                e
-                            );
-
-                            // If it's a specific status error, log it
-                            if e.to_string().contains("status: 0x") {
-                                println!("   Status indicates: parameter incompatibility or resource conflict");
-                            }
+        let tag_path = tag_path.to_string();
+        let mut client = self.clone();
+        tokio::spawn(async move {
+            loop {
+                match client.read_tag(&tag_path).await {
+                    Ok(value) => {
+                        if let Err(e) = client.update_subscription(&tag_path, &value).await {
+                            eprintln!("Error updating subscription: {}", e);
+                            break;
                         }
                     }
+                    Err(e) => {
+                        eprintln!("Error reading tag {}: {}", tag_path, e);
+                        break;
+                    }
                 }
-                Err(e) => {
-                    println!(
-                        "❌ [ATTEMPT {}] Network error with config {}: {}",
-                        config_id + 1,
-                        config_id,
-                        e
-                    );
-                }
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             }
-
-            // Small delay between attempts
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-        }
-
-        // If we get here, all configurations failed
-        Err(EtherNetIpError::Protocol(
-            "All connection parameter configurations failed. PLC may not support connected messaging or has reached connection limits.".to_string()
-        ))
-    }
-
-    /// Builds a Forward Open CIP request for establishing connected sessions
-    fn build_forward_open_request(
-        &self,
-        session: &ConnectedSession,
-    ) -> crate::error::Result<Vec<u8>> {
-        let mut request = Vec::with_capacity(50);
-
-        // CIP Forward Open Service (0x54)
-        request.push(0x54);
-
-        // Request path length (Connection Manager object)
-        request.push(0x02); // 2 words
-
-        // Class ID: Connection Manager (0x06)
-        request.push(0x20); // Logical Class segment
-        request.push(0x06);
-
-        // Instance ID: Connection Manager instance (0x01)
-        request.push(0x24); // Logical Instance segment
-        request.push(0x01);
-
-        // Forward Open parameters
-
-        // Connection Timeout Ticks (1 byte) + Timeout multiplier (1 byte)
-        request.push(0x0A); // Timeout ticks (10)
-        request.push(session.timeout_multiplier);
-
-        // Originator -> Target Connection ID (4 bytes, little-endian)
-        request.extend_from_slice(&session.o_to_t_connection_id.to_le_bytes());
-
-        // Target -> Originator Connection ID (4 bytes, little-endian)
-        request.extend_from_slice(&session.t_to_o_connection_id.to_le_bytes());
-
-        // Connection Serial Number (2 bytes, little-endian)
-        request.extend_from_slice(&session.connection_serial.to_le_bytes());
-
-        // Originator Vendor ID (2 bytes, little-endian)
-        request.extend_from_slice(&session.originator_vendor_id.to_le_bytes());
-
-        // Originator Serial Number (4 bytes, little-endian)
-        request.extend_from_slice(&session.originator_serial.to_le_bytes());
-
-        // Connection Timeout Multiplier (1 byte) - repeated for target
-        request.push(session.timeout_multiplier);
-
-        // Reserved bytes (3 bytes)
-        request.extend_from_slice(&[0x00, 0x00, 0x00]);
-
-        // Originator -> Target RPI (4 bytes, little-endian, microseconds)
-        request.extend_from_slice(&session.rpi.to_le_bytes());
-
-        // Originator -> Target connection parameters (4 bytes)
-        let o_to_t_params = self.encode_connection_parameters(&session.o_to_t_params);
-        request.extend_from_slice(&o_to_t_params.to_le_bytes());
-
-        // Target -> Originator RPI (4 bytes, little-endian, microseconds)
-        request.extend_from_slice(&session.rpi.to_le_bytes());
-
-        // Target -> Originator connection parameters (4 bytes)
-        let t_to_o_params = self.encode_connection_parameters(&session.t_to_o_params);
-        request.extend_from_slice(&t_to_o_params.to_le_bytes());
-
-        // Transport type/trigger (1 byte) - Class 3, Application triggered
-        request.push(0xA3);
-
-        // Connection Path Size (1 byte)
-        request.push(0x02); // 2 words for Message Router path
-
-        // Connection Path - Target the Message Router
-        request.push(0x20); // Logical Class segment
-        request.push(0x02); // Message Router class (0x02)
-        request.push(0x24); // Logical Instance segment
-        request.push(0x01); // Message Router instance (0x01)
-
-        Ok(request)
-    }
-
-    /// Encodes connection parameters into a 32-bit value
-    fn encode_connection_parameters(&self, params: &ConnectionParameters) -> u32 {
-        let mut encoded = 0u32;
-
-        // Connection size (bits 0-15)
-        encoded |= params.size as u32;
-
-        // Variable flag (bit 25)
-        if params.variable_size {
-            encoded |= 1 << 25;
-        }
-
-        // Connection type (bits 29-30)
-        encoded |= (params.connection_type as u32) << 29;
-
-        // Priority (bits 26-27)
-        encoded |= (params.priority as u32) << 26;
-
-        encoded
-    }
-
-    /// Parses Forward Open response and updates session with connection info
-    fn parse_forward_open_response(
-        &self,
-        session: &mut ConnectedSession,
-        response: &[u8],
-    ) -> crate::error::Result<()> {
-        if response.len() < 2 {
-            return Err(EtherNetIpError::Protocol(
-                "Forward Open response too short".to_string(),
-            ));
-        }
-
-        let service = response[0];
-        let status = response[1];
-
-        // Check if this is a Forward Open Reply (0xD4)
-        if service != 0xD4 {
-            return Err(EtherNetIpError::Protocol(format!(
-                "Unexpected service in Forward Open response: 0x{:02X}",
-                service
-            )));
-        }
-
-        // Check status
-        if status != 0x00 {
-            let error_msg = match status {
-                0x01 => "Connection failure - Resource unavailable or already exists",
-                0x02 => "Invalid parameter - Connection parameters rejected",
-                0x03 => "Connection timeout - PLC did not respond in time",
-                0x04 => "Connection limit exceeded - Too many connections",
-                0x08 => "Invalid service - Forward Open not supported",
-                0x0C => "Invalid attribute - Connection parameters invalid",
-                0x13 => "Path destination unknown - Target object not found",
-                0x26 => "Invalid parameter value - RPI or size out of range",
-                _ => &format!("Unknown status: 0x{:02X}", status),
-            };
-            return Err(EtherNetIpError::Protocol(format!(
-                "Forward Open failed with status 0x{:02X}: {}",
-                status, error_msg
-            )));
-        }
-
-        // Parse successful response
-        if response.len() < 16 {
-            return Err(EtherNetIpError::Protocol(
-                "Forward Open response data too short".to_string(),
-            ));
-        }
-
-        // CRITICAL FIX: The Forward Open response contains the actual connection IDs assigned by the PLC
-        // Use the IDs returned by the PLC, not our requested ones
-        let actual_o_to_t_id =
-            u32::from_le_bytes([response[2], response[3], response[4], response[5]]);
-        let actual_t_to_o_id =
-            u32::from_le_bytes([response[6], response[7], response[8], response[9]]);
-
-        // Update session with the actual assigned connection IDs
-        session.o_to_t_connection_id = actual_o_to_t_id;
-        session.t_to_o_connection_id = actual_t_to_o_id;
-        session.connection_id = actual_o_to_t_id; // Use O->T as the primary connection ID
-
-        println!("✅ [FORWARD OPEN] Success!");
-        println!(
-            "   O->T Connection ID: 0x{:08X} (PLC assigned)",
-            session.o_to_t_connection_id
-        );
-        println!(
-            "   T->O Connection ID: 0x{:08X} (PLC assigned)",
-            session.t_to_o_connection_id
-        );
-        println!(
-            "   Using Connection ID: 0x{:08X} for messaging",
-            session.connection_id
-        );
-
+        });
         Ok(())
     }
 
-    /// Writes a string using connected explicit messaging
-    pub async fn write_string_connected(
-        &mut self,
-        tag_name: &str,
-        value: &str,
-    ) -> crate::error::Result<()> {
-        let session_name = format!("string_write_{}", tag_name);
-        let mut sessions = self.connected_sessions.lock().await;
-
-        if !sessions.contains_key(&session_name) {
-            drop(sessions); // Release the lock before calling establish_connected_session
-            self.establish_connected_session(&session_name).await?;
-            sessions = self.connected_sessions.lock().await;
+    pub async fn subscribe_to_tags(&self, tags: &[(&str, SubscriptionOptions)]) -> Result<()> {
+        for (tag_name, options) in tags {
+            self.subscribe_to_tag(tag_name, options.clone()).await?;
         }
-
-        let session = sessions.get(&session_name).unwrap().clone();
-        let request = self.build_connected_string_write_request(tag_name, value, &session)?;
-
-        drop(sessions); // Release the lock before sending the request
-        let response = self
-            .send_connected_cip_request(&request, &session, &session_name)
-            .await?;
-
-        // Check if write was successful
-        if response.len() >= 2 {
-            let status = response[1];
-            if status == 0x00 {
-                Ok(())
-            } else {
-                let error_msg = self.get_cip_error_message(status);
-                Err(EtherNetIpError::Protocol(format!(
-                    "CIP Error 0x{:02X}: {}",
-                    status, error_msg
-                )))
-            }
-        } else {
-            Err(EtherNetIpError::Protocol(
-                "Invalid connected string write response".to_string(),
-            ))
-        }
+        Ok(())
     }
 
-    /// Builds a string write request for connected messaging
-    fn build_connected_string_write_request(
+    async fn update_subscription(&self, tag_name: &str, value: &PlcValue) -> Result<()> {
+        let subscriptions = self.subscriptions.lock().await;
+        for subscription in subscriptions.iter() {
+            if subscription.tag_path == tag_name && subscription.is_active() {
+                subscription.update_value(value).await?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Builds a string write request packet
+    fn build_string_write_request(
         &self,
         tag_name: &str,
         value: &str,
-        _session: &ConnectedSession,
     ) -> crate::error::Result<Vec<u8>> {
         let mut request = Vec::new();
 
-        // For connected messaging, use direct CIP Write service
-        // The connection is already established, so we can send the request directly
-
-        // CIP Write Service Code
+        // CIP Write Service (0x4D)
         request.push(0x4D);
 
-        // Tag path - use simple ANSI format for connected messaging
-        let tag_bytes = tag_name.as_bytes();
-        let path_size_words = (2 + tag_bytes.len() + 1) / 2; // +1 for potential padding, /2 for word count
-        request.push(path_size_words as u8);
+        // Tag path
+        let tag_path = self.build_tag_path(tag_name);
+        request.extend_from_slice(&tag_path);
 
-        request.push(0x91); // ANSI symbol segment
-        request.push(tag_bytes.len() as u8); // Length of tag name
-        request.extend_from_slice(tag_bytes);
+        // AB STRING data structure
+        request.extend_from_slice(&(value.len() as u16).to_le_bytes()); // Len
+        request.extend_from_slice(&82u16.to_le_bytes()); // MaxLen
 
-        // Add padding byte if needed to make path even length
-        if (2 + tag_bytes.len()) % 2 != 0 {
-            request.push(0x00);
-        }
-
-        // Data type for AB STRING
-        request.extend_from_slice(&[0xCE, 0x0F]); // AB STRING data type (4046)
-
-        // Number of elements (always 1 for a single string)
-        request.extend_from_slice(&[0x01, 0x00]);
-
-        // Build the AB STRING structure payload
-        let string_bytes = value.as_bytes();
-        let max_len: u16 = 82; // Standard AB STRING max length
-        let current_len = string_bytes.len().min(max_len as usize) as u16;
-
-        // STRING structure:
-        // - Len (2 bytes) - number of characters used
-        request.extend_from_slice(&current_len.to_le_bytes());
-
-        // - MaxLen (2 bytes) - maximum characters allowed (typically 82)
-        request.extend_from_slice(&max_len.to_le_bytes());
-
-        // - Data[MaxLen] (82 bytes) - the character array, zero-padded
-        let mut data_array = vec![0u8; max_len as usize];
-        data_array[..current_len as usize].copy_from_slice(&string_bytes[..current_len as usize]);
-        request.extend_from_slice(&data_array);
-
-        println!("🔧 [DEBUG] Built connected string write request ({} bytes) for '{}' = '{}' (len={}, maxlen={})",
-                 request.len(), tag_name, value, current_len, max_len);
-        println!("🔧 [DEBUG] Request: {:02X?}", request);
+        // Data[82] with padding
+        let mut data = [0u8; 82];
+        let bytes = value.as_bytes();
+        data[..bytes.len()].copy_from_slice(bytes);
+        request.extend_from_slice(&data);
 
         Ok(request)
     }
 
-    /// Sends a CIP request using connected messaging
-    async fn send_connected_cip_request(
-        &mut self,
-        cip_request: &[u8],
-        session: &ConnectedSession,
-        session_name: &str,
-    ) -> crate::error::Result<Vec<u8>> {
-        println!("🔗 [CONNECTED] Sending connected CIP request ({} bytes) using T->O connection ID 0x{:08X}",
-                 cip_request.len(), session.t_to_o_connection_id);
-
-        // Build EtherNet/IP header for connected data (Send RR Data)
-        let mut packet = Vec::new();
-
-        // EtherNet/IP Header
-        packet.extend_from_slice(&[0x6F, 0x00]); // Command: Send RR Data (0x006F) - correct for connected messaging
-        packet.extend_from_slice(&[0x00, 0x00]); // Length (fill in later)
-        packet.extend_from_slice(&self.session_handle.to_le_bytes()); // Session handle
-        packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]); // Status
-        packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]); // Context
-        packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]); // Options
-
-        // CPF (Common Packet Format) data starts here
-        let cpf_start = packet.len();
-
-        // Interface handle (4 bytes)
-        packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]);
-
-        // Timeout (2 bytes) - 5 seconds
-        packet.extend_from_slice(&[0x05, 0x00]);
-
-        // Item count (2 bytes) - 2 items: Address + Data
-        packet.extend_from_slice(&[0x02, 0x00]);
-
-        // Item 1: Connected Address Item (specifies which connection to use)
-        packet.extend_from_slice(&[0xA1, 0x00]); // Type: Connected Address Item (0x00A1)
-        packet.extend_from_slice(&[0x04, 0x00]); // Length: 4 bytes
-                                                 // Use T->O connection ID (Target to Originator) for addressing
-        packet.extend_from_slice(&session.t_to_o_connection_id.to_le_bytes());
-
-        // Item 2: Connected Data Item (contains the CIP request + sequence)
-        packet.extend_from_slice(&[0xB1, 0x00]); // Type: Connected Data Item (0x00B1)
-        let data_length = cip_request.len() + 2; // +2 for sequence count
-        packet.extend_from_slice(&(data_length as u16).to_le_bytes()); // Length
-
-        // Clone session_name and session before acquiring the lock
-        let session_name_clone = session_name.to_string();
-        let _session_clone = session.clone();
-
-        // Get the current session mutably to increment sequence counter
-        let mut sessions = self.connected_sessions.lock().await;
-        let current_sequence = if let Some(session_mut) = sessions.get_mut(&session_name_clone) {
-            session_mut.sequence_count += 1;
-            session_mut.sequence_count
-        } else {
-            1 // Fallback if session not found
-        };
-
-        // Drop the lock before sending the request
-        drop(sessions);
-
-        // Sequence count (2 bytes) - incremental counter for this connection
-        packet.extend_from_slice(&current_sequence.to_le_bytes());
-
-        // CIP request data
-        packet.extend_from_slice(cip_request);
-
-        // Update packet length in header (total CPF data size)
-        let cpf_length = packet.len() - cpf_start;
-        packet[2..4].copy_from_slice(&(cpf_length as u16).to_le_bytes());
-
-        println!(
-            "🔗 [CONNECTED] Sending packet ({} bytes) with sequence {}",
-            packet.len(),
-            current_sequence
-        );
-
-        // Send packet
-        let mut stream = self.stream.lock().await;
-        stream
-            .write_all(&packet)
-            .await
-            .map_err(EtherNetIpError::Io)?;
-
-        // Read response header
-        let mut header = [0u8; 24];
-        stream
-            .read_exact(&mut header)
-            .await
-            .map_err(EtherNetIpError::Io)?;
-
-        // Check EtherNet/IP command status
-        let cmd_status = u32::from_le_bytes([header[8], header[9], header[10], header[11]]);
-        if cmd_status != 0 {
-            return Err(EtherNetIpError::Protocol(format!(
-                "Connected message failed with status: 0x{:08X}",
-                cmd_status
-            )));
+    /// Write a string value to a PLC tag using unconnected messaging
+    pub async fn write_string(&mut self, tag_name: &str, value: &str) -> crate::error::Result<()> {
+        // Validate string length
+        if value.len() > 82 {
+            return Err(crate::error::EtherNetIpError::StringTooLong {
+                max_length: 82,
+                actual_length: value.len(),
+            });
         }
 
-        // Read response data
-        let response_length = u16::from_le_bytes([header[2], header[3]]) as usize;
-        let mut response_data = vec![0u8; response_length];
-        stream
-            .read_exact(&mut response_data)
-            .await
-            .map_err(EtherNetIpError::Io)?;
+        // Validate string content (ASCII only)
+        if !value.is_ascii() {
+            return Err(crate::error::EtherNetIpError::InvalidString {
+                reason: "String contains non-ASCII characters".to_string(),
+            });
+        }
 
-        let mut last_activity = self.last_activity.lock().await;
-        *last_activity = Instant::now();
+        // Build the string write request
+        let request = self.build_string_write_request(tag_name, value)?;
 
-        println!(
-            "🔗 [CONNECTED] Received response ({} bytes)",
-            response_data.len()
-        );
+        // Send the request and get the response (routing applied automatically)
+        let response = self.send_cip_request(&request).await?;
 
-        // Extract connected CIP response
-        self.extract_connected_cip_from_response(&response_data)
+        // Parse the response
+        let cip_response = self.extract_cip_from_response(&response)?;
+
+        // Check for errors in the response
+        if cip_response.len() < 2 {
+            return Err(crate::error::EtherNetIpError::InvalidResponse {
+                reason: "Response too short".to_string(),
+            });
+        }
+
+        let status = cip_response[0];
+        if status != 0 {
+            return Err(crate::error::EtherNetIpError::WriteError {
+                status,
+                message: self.get_cip_error_message(status),
+            });
+        }
+
+        Ok(())
     }
 
-    /// Extracts CIP data from connected response
-    fn extract_connected_cip_from_response(
-        &self,
-        response: &[u8],
-    ) -> crate::error::Result<Vec<u8>> {
-        println!(
-            "🔗 [CONNECTED] Extracting CIP from connected response ({} bytes): {:02X?}",
-            response.len(),
-            response
-        );
+    /// Closes all connected sessions (called during disconnect)
+    async fn close_all_connected_sessions(&mut self) -> crate::error::Result<()> {
+        let session_names: Vec<String> = self
+            .connected_sessions
+            .lock()
+            .await
+            .keys()
+            .cloned()
+            .collect();
 
-        if response.len() < 12 {
-            return Err(EtherNetIpError::Protocol(
-                "Connected response too short for CPF header".to_string(),
-            ));
+        for session_name in session_names {
+            let _ = self.close_connected_session(&session_name).await; // Ignore errors during cleanup
         }
 
-        // Parse CPF (Common Packet Format) structure
-        // [0-3]: Interface handle
-        // [4-5]: Timeout
-        // [6-7]: Item count
-        let item_count = u16::from_le_bytes([response[6], response[7]]) as usize;
-        println!("🔗 [CONNECTED] CPF item count: {}", item_count);
-
-        let mut pos = 8; // Start after CPF header
-
-        // Look for Connected Data Item (0x00B1)
-        for _i in 0..item_count {
-            if pos + 4 > response.len() {
-                return Err(EtherNetIpError::Protocol(
-                    "Response truncated while parsing items".to_string(),
-                ));
-            }
-
-            let item_type = u16::from_le_bytes([response[pos], response[pos + 1]]);
-            let item_length = u16::from_le_bytes([response[pos + 2], response[pos + 3]]) as usize;
-            pos += 4; // Skip item header
-
-            println!(
-                "🔗 [CONNECTED] Found item: type=0x{:04X}, length={}",
-                item_type, item_length
-            );
-
-            if item_type == 0x00B1 {
-                // Connected Data Item
-                if pos + item_length > response.len() {
-                    return Err(EtherNetIpError::Protocol(
-                        "Connected data item truncated".to_string(),
-                    ));
-                }
-
-                // Connected Data Item contains [sequence_count(2)][cip_data]
-                if item_length < 2 {
-                    return Err(EtherNetIpError::Protocol(
-                        "Connected data item too short for sequence".to_string(),
-                    ));
-                }
-
-                let sequence_count = u16::from_le_bytes([response[pos], response[pos + 1]]);
-                println!("🔗 [CONNECTED] Sequence count: {}", sequence_count);
-
-                // Extract CIP data (skip 2-byte sequence count)
-                let cip_data = response[pos + 2..pos + item_length].to_vec();
-                println!(
-                    "🔗 [CONNECTED] Extracted CIP data ({} bytes): {:02X?}",
-                    cip_data.len(),
-                    cip_data
-                );
-
-                return Ok(cip_data);
-            } else {
-                // Skip this item's data
-                pos += item_length;
-            }
-        }
-
-        Err(EtherNetIpError::Protocol(
-            "Connected Data Item (0x00B1) not found in response".to_string(),
-        ))
+        Ok(())
     }
 
     /// Closes a specific connected session
     async fn close_connected_session(&mut self, session_name: &str) -> crate::error::Result<()> {
         if let Some(session) = self.connected_sessions.lock().await.get(session_name) {
-            let session = session.clone(); // Clone to avoid borrowing issues
+            let session = session.clone();
 
             // Build Forward Close request
             let forward_close_request = self.build_forward_close_request(&session)?;
@@ -3923,8 +2881,6 @@ impl EipClient {
         request.push(0x01);
 
         // Forward Close parameters
-
-        // Connection Timeout Ticks (1 byte) + Timeout multiplier (1 byte)
         request.push(0x0A); // Timeout ticks (10)
         request.push(session.timeout_multiplier);
 
@@ -3948,310 +2904,6 @@ impl EipClient {
 
         Ok(request)
     }
-
-    /// Closes all connected sessions (called during disconnect)
-    async fn close_all_connected_sessions(&mut self) -> crate::error::Result<()> {
-        let session_names: Vec<String> = self
-            .connected_sessions
-            .lock()
-            .await
-            .keys()
-            .cloned()
-            .collect();
-
-        for session_name in session_names {
-            let _ = self.close_connected_session(&session_name).await; // Ignore errors during cleanup
-        }
-
-        Ok(())
-    }
-
-    /// Writes a string using unconnected explicit messaging with proper AB STRING format
-    ///
-    /// This method uses standard unconnected messaging instead of connected messaging
-    /// and implements the proper Allen-Bradley STRING structure as described in the
-    /// provided information about Len, MaxLen, and Data[82] format.
-    pub async fn write_string_unconnected(
-        &mut self,
-        tag_name: &str,
-        value: &str,
-    ) -> crate::error::Result<()> {
-        println!(
-            "📝 [UNCONNECTED] Writing string '{}' to tag '{}' using unconnected messaging",
-            value, tag_name
-        );
-
-        self.validate_session().await?;
-
-        let string_bytes = value.as_bytes();
-        if string_bytes.len() > 82 {
-            return Err(EtherNetIpError::Protocol(
-                "String too long for Allen-Bradley STRING (max 82 chars)".to_string(),
-            ));
-        }
-
-        // Build the CIP request with proper AB STRING structure
-        let mut cip_request = Vec::new();
-
-        // Service: Write Tag Service (0x4D)
-        cip_request.push(0x4D);
-
-        // Request Path Size (in words)
-        let tag_bytes = tag_name.as_bytes();
-        let path_len = if tag_bytes.len() % 2 == 0 {
-            tag_bytes.len() + 2
-        } else {
-            tag_bytes.len() + 3
-        } / 2;
-        cip_request.push(path_len as u8);
-
-        // Request Path: ANSI Extended Symbol Segment for tag name
-        cip_request.push(0x91); // ANSI Extended Symbol Segment
-        cip_request.push(tag_bytes.len() as u8); // Tag name length
-        cip_request.extend_from_slice(tag_bytes); // Tag name
-
-        // Pad to even length if necessary
-        if tag_bytes.len() % 2 != 0 {
-            cip_request.push(0x00);
-        }
-
-        // For write operations, we don't include data type and element count
-        // The PLC infers the data type from the tag definition
-
-        // Build Allen-Bradley STRING structure based on what we see in read responses:
-        // Looking at read response: [CE, 0F, 01, 00, 00, 00, 31, 00, ...]
-        // Structure appears to be:
-        // - Some header/identifier (2 bytes): 0xCE, 0x0F
-        // - Length (2 bytes): number of characters
-        // - MaxLength or padding (2 bytes): 0x00, 0x00
-        // - Data array (variable length, null terminated)
-
-        let _current_len = string_bytes.len().min(82) as u16;
-
-        // Build the correct Allen-Bradley STRING structure to match what the PLC expects
-        // Analysis of read response: [CE, 0F, 01, 00, 00, 00, 31, 00, 00, 00, ...]
-        // Structure appears to be:
-        // - Header (2 bytes): 0xCE, 0x0F (Allen-Bradley STRING identifier)
-        // - Length (4 bytes, DINT): Number of characters currently used
-        // - Data (variable): Character data followed by padding to complete the structure
-
-        let current_len = string_bytes.len().min(82) as u32;
-
-        // AB STRING header/identifier - this appears to be required
-        cip_request.extend_from_slice(&[0xCE, 0x0F]);
-
-        // Length (4 bytes) - number of characters used as DINT
-        cip_request.extend_from_slice(&current_len.to_le_bytes());
-
-        // Data bytes - the actual string content
-        cip_request.extend_from_slice(&string_bytes[..current_len as usize]);
-
-        // Add padding if the total structure needs to be a specific size
-        // Based on reads, it looks like there might be additional padding after the data
-
-        println!("🔧 [DEBUG] Built Allen-Bradley STRING write request ({} bytes) for '{}' = '{}' (len={})",
-                 cip_request.len(), tag_name, value, current_len);
-        println!("🔧 [DEBUG] Request structure: Service=0x4D, Path={} bytes, Header=0xCE0F, Len={} (4 bytes), Data",
-                 path_len * 2, current_len);
-
-        // Send the request using standard unconnected messaging
-        let response = self.send_cip_request(&cip_request).await?;
-
-        // Extract CIP response from EtherNet/IP wrapper
-        let cip_response = self.extract_cip_from_response(&response)?;
-
-        // Check if write was successful - use correct CIP response format
-        if cip_response.len() >= 3 {
-            let service_reply = cip_response[0]; // Should be 0xCD (0x4D + 0x80) for Write Tag reply
-            let _additional_status_size = cip_response[1]; // Additional status size (usually 0)
-            let status = cip_response[2]; // CIP status code at position 2
-
-            println!(
-                "🔧 [DEBUG] Write response - Service: 0x{:02X}, Status: 0x{:02X}",
-                service_reply, status
-            );
-
-            if status == 0x00 {
-                println!("✅ [UNCONNECTED] String write completed successfully");
-                Ok(())
-            } else {
-                let error_msg = self.get_cip_error_message(status);
-                println!(
-                    "❌ [UNCONNECTED] String write failed: {} (0x{:02X})",
-                    error_msg, status
-                );
-                Err(EtherNetIpError::Protocol(format!(
-                    "CIP Error 0x{:02X}: {}",
-                    status, error_msg
-                )))
-            }
-        } else {
-            Err(EtherNetIpError::Protocol(
-                "Invalid unconnected string write response - too short".to_string(),
-            ))
-        }
-    }
-
-    /// Write a string value to a PLC tag using unconnected messaging
-    ///
-    /// # Arguments
-    ///
-    /// * `tag_name` - The name of the tag to write to
-    /// * `value` - The string value to write (max 82 characters)
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` if the write was successful
-    /// * `Err(EtherNetIpError)` if the write failed
-    ///
-    /// # Errors
-    ///
-    /// * `StringTooLong` - If the string is longer than 82 characters
-    /// * `InvalidString` - If the string contains invalid characters
-    /// * `TagNotFound` - If the tag doesn't exist
-    /// * `WriteError` - If the write operation fails
-    pub async fn write_string(&mut self, tag_name: &str, value: &str) -> crate::error::Result<()> {
-        // Validate string length
-        if value.len() > 82 {
-            return Err(crate::error::EtherNetIpError::StringTooLong {
-                max_length: 82,
-                actual_length: value.len(),
-            });
-        }
-
-        // Validate string content (ASCII only)
-        if !value.is_ascii() {
-            return Err(crate::error::EtherNetIpError::InvalidString {
-                reason: "String contains non-ASCII characters".to_string(),
-            });
-        }
-
-        // Build the string write request
-        let request = self.build_string_write_request(tag_name, value)?;
-
-        // Send the request and get the response
-        let response = self.send_cip_request(&request).await?;
-
-        // Parse the response
-        let cip_response = self.extract_cip_from_response(&response)?;
-
-        // Check for errors in the response
-        if cip_response.len() < 2 {
-            return Err(crate::error::EtherNetIpError::InvalidResponse {
-                reason: "Response too short".to_string(),
-            });
-        }
-
-        let status = cip_response[0];
-        if status != 0 {
-            return Err(crate::error::EtherNetIpError::WriteError {
-                status,
-                message: self.get_cip_error_message(status),
-            });
-        }
-
-        Ok(())
-    }
-
-    /// Build a string write request packet
-    fn build_string_write_request(
-        &self,
-        tag_name: &str,
-        value: &str,
-    ) -> crate::error::Result<Vec<u8>> {
-        let mut request = Vec::new();
-
-        // CIP Write Service (0x4D)
-        request.push(0x4D);
-
-        // Tag path
-        let tag_path = self.build_tag_path(tag_name);
-        request.extend_from_slice(&tag_path);
-
-        // AB STRING data structure
-        request.extend_from_slice(&(value.len() as u16).to_le_bytes()); // Len
-        request.extend_from_slice(&82u16.to_le_bytes()); // MaxLen
-
-        // Data[82] with padding
-        let mut data = [0u8; 82];
-        let bytes = value.as_bytes();
-        data[..bytes.len()].copy_from_slice(bytes);
-        request.extend_from_slice(&data);
-
-        Ok(request)
-    }
-
-    /// Subscribes to a tag for real-time updates
-    pub async fn subscribe_to_tag(
-        &self,
-        tag_path: &str,
-        options: SubscriptionOptions,
-    ) -> Result<()> {
-        let mut subscriptions = self.subscriptions.lock().await;
-        let subscription = TagSubscription::new(tag_path.to_string(), options);
-        subscriptions.push(subscription);
-        drop(subscriptions); // Release the lock before starting the monitoring thread
-
-        let tag_path = tag_path.to_string();
-        let mut client = self.clone();
-        tokio::spawn(async move {
-            loop {
-                match client.read_tag(&tag_path).await {
-                    Ok(value) => {
-                        if let Err(e) = client.update_subscription(&tag_path, &value).await {
-                            eprintln!("Error updating subscription: {}", e);
-                            break;
-                        }
-                    }
-                    Err(e) => {
-                        eprintln!("Error reading tag {}: {}", tag_path, e);
-                        break;
-                    }
-                }
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            }
-        });
-        Ok(())
-    }
-
-    pub async fn subscribe_to_tags(&self, tags: &[(&str, SubscriptionOptions)]) -> Result<()> {
-        for (tag_name, options) in tags {
-            self.subscribe_to_tag(tag_name, options.clone()).await?;
-        }
-        Ok(())
-    }
-
-    async fn update_subscription(&self, tag_name: &str, value: &PlcValue) -> Result<()> {
-        let subscriptions = self.subscriptions.lock().await;
-        for subscription in subscriptions.iter() {
-            if subscription.tag_path == tag_name && subscription.is_active() {
-                subscription.update_value(value).await?;
-            }
-        }
-        Ok(())
-    }
-
-    async fn _get_connected_session(
-        &mut self,
-        session_name: &str,
-    ) -> crate::error::Result<ConnectedSession> {
-        // First check if we already have a session
-        {
-            let sessions = self.connected_sessions.lock().await;
-            if let Some(session) = sessions.get(session_name) {
-                return Ok(session.clone());
-            }
-        }
-
-        // If we don't have a session, establish a new one
-        let session = self.establish_connected_session(session_name).await?;
-
-        // Store the new session
-        let mut sessions = self.connected_sessions.lock().await;
-        sessions.insert(session_name.to_string(), session.clone());
-
-        Ok(session)
-    }
 }
 
 /*
@@ -4259,22 +2911,43 @@ impl EipClient {
 END OF LIBRARY DOCUMENTATION
 
 This file provides a complete, production-ready EtherNet/IP communication
-library for Allen-Bradley PLCs. The library includes:
+library for Allen-Bradley PLCs with comprehensive port routing support.
 
-- Native Rust API with async support
-- C FFI exports for cross-language integration
-- Comprehensive error handling and validation
-- Detailed documentation and examples
-- Performance optimizations
-- Memory safety guarantees
+## Port Routing Features Added:
 
-For usage examples, see the main.rs file or the C# integration samples.
+- **PortSegment Structure**: Complete CIP-compliant port routing implementation
+- **Automatic Routing**: All read/write operations automatically use configured routing
+- **Runtime Configuration**: Connection paths can be changed during execution
+- **Zero Breaking Changes**: Existing code continues to work unchanged
+- **Validation**: Connection path validation and error reporting
+- **Batch Support**: All batch operations support automatic port routing
 
-For technical details about the EtherNet/IP protocol implementation,
-refer to the inline documentation above.
+## Usage Examples:
 
-Version: 1.0.0
-Compatible with: CompactLogix L1x-L5x series PLCs
-License: As specified in Cargo.toml
-===============================================================================_
+```rust
+// Connect to processor in slot 1 (most common case)
+let mut client = EipClient::connect_with_path(
+    "192.168.1.3:44818",
+    Some(PortSegment::processor_in_slot(1))
+).await?;
+
+// All operations are automatically routed to slot 1
+let value = client.read_tag("Rust_Real[0]").await?;
+client.write_tag("SetPoint", PlcValue::Dint(1500)).await?;
+
+// Change routing at runtime
+client.set_connection_path(PortSegment::processor_in_slot(3));
+
+// Batch operations also use routing automatically
+let operations = vec![
+    BatchOperation::Read { tag_name: "Tag1".to_string() },
+    BatchOperation::Write { tag_name: "Tag2".to_string(), value: PlcValue::Dint(42) },
+];
+let results = client.execute_batch(&operations).await?;
+```
+
+Version: 0.5.3 + Port Routing
+Compatible with: CompactLogix L1x-L5x series PLCs with backplane routing
+Perfect for: Network cards in slot 0, processors in other slots
+===============================================================================
 */
